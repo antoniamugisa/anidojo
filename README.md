@@ -1,8 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AniDojo - Frontend Only
+
+Your ultimate anime tracking and discovery platform built with Next.js 15, React 19, and Tailwind CSS.
+
+## Features
+
+- **Browse Anime**: Discover popular anime with detailed information
+- **Modern UI**: Clean, responsive design with dark theme
+- **Mock Data**: Pre-loaded with sample anime data for demonstration
+- **TypeScript**: Fully type-safe development experience
+- **Tailwind CSS**: Utility-first CSS framework for rapid styling
+
+## Tech Stack
+
+- **Next.js 15** - React framework with App Router
+- **React 19** - Latest React with concurrent features
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide React** - Beautiful icons
+- **Zustand** - State management (ready for future features)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18 or higher
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+3. Start the development server:
 
 ```bash
 npm run dev
@@ -14,23 +53,50 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                 # Next.js App Router pages
+│   ├── browse/         # Browse anime page
+│   ├── layout.tsx      # Root layout
+│   └── page.tsx        # Home page
+├── components/         # React components
+│   ├── Navbar.tsx     # Navigation component
+│   └── Providers.tsx  # App providers
+└── lib/               # Utility functions and data
+    ├── mockData.ts    # Sample anime data
+    └── utils.ts       # Helper utilities
+```
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Customization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app uses mock data located in `src/lib/mockData.ts`. You can easily modify this file to add more anime or change the existing data structure.
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This is a frontend-only application that can be deployed to any static hosting service:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Vercel** (recommended for Next.js)
+- **Netlify**
+- **GitHub Pages**
+- **AWS S3 + CloudFront**
+
+## Future Enhancements
+
+This frontend is designed to be easily extended with backend functionality:
+
+- User authentication
+- Database integration
+- Real-time features
+- API endpoints
+- User profiles and tracking

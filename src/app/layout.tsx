@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AnimeTracker",
-  description: "Anime recommendation and review app",
+  title: "AniDojo",
+  description: "Your ultimate anime tracking and discovery platform",
 };
 
 export default function RootLayout({
