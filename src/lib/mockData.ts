@@ -17,6 +17,19 @@ export interface Anime {
   };
 }
 
+export interface UserActivity {
+  id: string;
+  user: {
+    name: string;
+    username: string;
+    avatar: string;
+  };
+  anime: Anime;
+  rating: number;
+  date: string;
+  type: 'watched' | 'liked' | 'reviewed';
+}
+
 export const mockAnime: Anime[] = [
   {
     id: "demo-naruto",
@@ -27,9 +40,6 @@ export const mockAnime: Anime[] = [
     year: 2002,
     episodes: 220,
     status: "COMPLETED",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Hayato Date",
       writer: "Masashi Kishimoto",
@@ -45,9 +55,6 @@ export const mockAnime: Anime[] = [
     year: 2013,
     episodes: 25,
     status: "COMPLETED",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Tetsurō Araki",
       writer: "Hajime Isayama",
@@ -63,9 +70,6 @@ export const mockAnime: Anime[] = [
     year: 2020,
     episodes: 24,
     status: "ONGOING",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Sunghoo Park",
       writer: "Gege Akutami",
@@ -81,9 +85,6 @@ export const mockAnime: Anime[] = [
     year: 2019,
     episodes: 26,
     status: "COMPLETED",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Haruo Sotozaki",
       writer: "Koyoharu Gotouge",
@@ -99,9 +100,6 @@ export const mockAnime: Anime[] = [
     year: 1999,
     episodes: 1000,
     status: "ONGOING",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Eiichiro Oda",
       writer: "Eiichiro Oda",
@@ -117,14 +115,86 @@ export const mockAnime: Anime[] = [
     year: 2022,
     episodes: 12,
     status: "ONGOING",
-    coverArt: null,
-    screenshots: null,
-    trailers: null,
     staff: {
       director: "Kazuhiro Furuhashi",
       writer: "Tatsuya Endo",
       voiceActors: ["Takuya Eguchi", "Atsumi Tanezaki", "Saori Hayami"]
     }
+  }
+];
+
+export const mockUserActivities: UserActivity[] = [
+  {
+    id: "activity-1",
+    user: {
+      name: "Anime Fan",
+      username: "animefan",
+      avatar: "🎌"
+    },
+    anime: mockAnime[0],
+    rating: 4,
+    date: "Sep 24",
+    type: "watched"
+  },
+  {
+    id: "activity-2",
+    user: {
+      name: "Otaku Craig",
+      username: "otakucraig",
+      avatar: "👺"
+    },
+    anime: mockAnime[1],
+    rating: 5,
+    date: "Oct 01",
+    type: "watched"
+  },
+  {
+    id: "activity-3",
+    user: {
+      name: "Manga Reader",
+      username: "mangareader",
+      avatar: "📚"
+    },
+    anime: mockAnime[2],
+    rating: 4,
+    date: "Oct 01",
+    type: "watched"
+  },
+  {
+    id: "activity-4",
+    user: {
+      name: "Studio Watcher",
+      username: "studiowatcher",
+      avatar: "🎭"
+    },
+    anime: mockAnime[3],
+    rating: 4,
+    date: "Oct 01",
+    type: "watched"
+  },
+  {
+    id: "activity-5",
+    user: {
+      name: "Shounen Fan",
+      username: "shounenfan",
+      avatar: "⚡"
+    },
+    anime: mockAnime[4],
+    rating: 5,
+    date: "Sep 30",
+    type: "watched"
+  },
+  {
+    id: "activity-6",
+    user: {
+      name: "Slice of Life",
+      username: "sliceoflife",
+      avatar: "🌸"
+    },
+    anime: mockAnime[5],
+    rating: 4,
+    date: "Oct 01",
+    type: "watched"
   }
 ];
 
