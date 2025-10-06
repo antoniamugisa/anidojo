@@ -113,13 +113,8 @@ export default function AuthPage() {
           {/* Main Slogan */}
           <div className="mb-4">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
-              what anime do you want to watch?
+              What Anime do You Want to Watch?
             </h2>
-            <p className="text-sm text-white/90">
-              Track anime you've watched.<br />
-              Save those you want to see.<br />
-              Tell your friends what's good.
-            </p>
           </div>
 
           {/* Call to Action Button */}
