@@ -17,7 +17,7 @@ export default function BrowsePage() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6 bg-white min-h-screen pt-20">
+    <main className="mx-auto max-w-6xl px-4 py-6 bg-white min-h-screen">
       <h1 className="mb-6 text-3xl font-bold text-gray-900 uppercase tracking-wide">Top Anime</h1>
       
       {loading && (
