@@ -77,9 +77,15 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-black/70"></div>
       
       {/* Header */}
-      <div className="relative z-20 px-6 py-6">
+      <div className="relative z-20 px-6 pb-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">AniDojo</h1>
+          <div className="flex items-center">
+            <img 
+              src="/images/anidojo-logo.png" 
+              alt="AniDojo" 
+              className="h-48 w-auto"
+            />
+          </div>
           <div className="flex items-center gap-6">
             <button
               onClick={() => setIsSignIn(true)}
@@ -102,14 +108,14 @@ export default function AuthPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="relative z-10 h-screen flex flex-col items-center justify-start px-6 pt-2">
         <div className="w-full max-w-md text-center">
           {/* Main Slogan */}
-          <div className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+          <div className="mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
               what anime do you want to watch?
             </h2>
-            <p className="text-lg text-white/90">
+            <p className="text-sm text-white/90">
               Track anime you've watched.<br />
               Save those you want to see.<br />
               Tell your friends what's good.
@@ -117,11 +123,11 @@ export default function AuthPage() {
           </div>
 
           {/* Call to Action Button */}
-          <div className="mb-8">
+          <div className="mb-4">
             <button
               onClick={isSignIn ? handleSubmit : handleSubmit}
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading 
                 ? (isSignIn ? 'Signing in...' : 'Creating account...') 
@@ -132,37 +138,37 @@ export default function AuthPage() {
 
           {/* Form Section (Hidden by default, shown when needed) */}
           {(isSignIn || !isSignIn) && (
-            <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+            <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3 border border-white/20">
               {/* Error Message */}
               {error && (
-                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-300 text-sm">
+                <div className="mb-2 p-2 bg-red-900/50 border border-red-700 rounded text-red-300 text-xs">
                   {error}
                 </div>
               )}
 
               {/* Email Input */}
-              <div className="mb-4">
+              <div className="mb-2">
                 <input
                   type="email"
                   id="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm"
+                  className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-sm"
                   placeholder="Enter your email"
                 />
               </div>
 
               {/* Password Input (for sign in) */}
               {isSignIn && (
-                <div className="mb-4">
+                <div className="mb-2">
                   <input
                     type="password"
                     id="password"
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-sm"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -170,14 +176,14 @@ export default function AuthPage() {
 
               {/* Username Input (for create account) */}
               {!isSignIn && (
-                <div className="mb-4">
+                <div className="mb-2">
                   <input
                     type="text"
                     id="username"
                     value={formData.username}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-sm"
                     placeholder="Choose a username"
                   />
                 </div>
@@ -185,14 +191,14 @@ export default function AuthPage() {
 
               {/* Password Input (for create account) */}
               {!isSignIn && (
-                <div className="mb-4">
+                <div className="mb-2">
                   <input
                     type="password"
                     id="password"
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-sm"
                     placeholder="Create a password"
                   />
                 </div>
@@ -200,21 +206,21 @@ export default function AuthPage() {
 
               {/* Confirm Password Input (for create account) */}
               {!isSignIn && (
-                <div className="mb-4">
+                <div className="mb-2">
                   <input
                     type="password"
                     id="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 backdrop-blur-sm text-sm"
                     placeholder="Confirm your password"
                   />
                 </div>
               )}
 
               {/* Google Sign In */}
-              <div className="mb-4">
+              <div className="mb-2">
                 <button
                   onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/10 border border-white/30 rounded text-white hover:bg-white/20 transition-colors backdrop-blur-sm"
