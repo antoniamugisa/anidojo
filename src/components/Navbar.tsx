@@ -46,12 +46,20 @@ export default function Navbar() {
 							</button>
 						</div>
 					) : (
-						<Link
-							href="/auth"
-							className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white font-semibold hover:bg-white/30 transition-all duration-200"
-						>
-							SIGN IN
-						</Link>
+						<div className="flex items-center gap-3">
+							<Link
+								href="/auth"
+								className="px-4 py-2 bg-transparent border border-white/30 rounded-lg text-white font-semibold hover:bg-white/10 transition-all duration-200"
+							>
+								SIGN IN
+							</Link>
+							<Link
+								href="/auth"
+								className="px-4 py-2 bg-green-600 hover:bg-green-700 border border-green-600 rounded-lg text-white font-semibold transition-all duration-200"
+							>
+								CREATE ACCOUNT
+							</Link>
+						</div>
 					)}
 				</div>
 			</div>

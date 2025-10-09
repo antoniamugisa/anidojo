@@ -117,17 +117,62 @@ export default function AuthPage() {
             </h2>
           </div>
 
-          {/* Call to Action Button */}
-          <div className="mb-4">
+          {/* Call to Action Buttons */}
+          <div className="mb-4 flex gap-3 justify-center">
             <button
-              onClick={isSignIn ? handleSubmit : handleSubmit}
+              onClick={async (e) => {
+                e.preventDefault();
+                setIsSignIn(true);
+                setError('');
+                setLoading(true);
+
+                try {
+                  const success = await signIn(formData.email, formData.password);
+                  if (success) {
+                    router.push('/');
+                  } else {
+                    setError('Invalid email or password');
+                  }
+                } catch (error) {
+                  setError('An error occurred. Please try again.');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="bg-transparent border border-white/30 hover:bg-white/10 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading && isSignIn ? 'Signing in...' : 'Sign In'}
+            </button>
+            <button
+              onClick={async (e) => {
+                e.preventDefault();
+                setIsSignIn(false);
+                setError('');
+                setLoading(true);
+
+                try {
+                  if (formData.password !== formData.confirmPassword) {
+                    setError('Passwords do not match');
+                    setLoading(false);
+                    return;
+                  }
+                  const success = await signUp(formData.username, formData.email, formData.password);
+                  if (success) {
+                    router.push('/');
+                  } else {
+                    setError('Failed to create account');
+                  }
+                } catch (error) {
+                  setError('An error occurred. Please try again.');
+                } finally {
+                  setLoading(false);
+                }
+              }}
               disabled={loading}
               className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading 
-                ? (isSignIn ? 'Signing in...' : 'Creating account...') 
-                : (isSignIn ? 'Sign in — it\'s free!' : 'Get started — it\'s free!')
-              }
+              {loading && !isSignIn ? 'Creating account...' : 'Create Account'}
             </button>
           </div>
 
