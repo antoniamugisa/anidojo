@@ -29,7 +29,7 @@ export default function AuthPage() {
             <img 
               src="/images/anidojo-logo.png" 
               alt="AniDojo" 
-              className="h-32 w-auto mx-auto"
+              className="h-64 w-auto mx-auto"
             />
           </div>
 
