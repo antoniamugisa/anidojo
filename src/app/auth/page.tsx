@@ -21,31 +21,27 @@ export default function AuthPage() {
       {/* Dark overlay for text readability */}
       <div className="absolute inset-0 bg-black/70"></div>
       
-      {/* Header */}
-      <div className="relative z-20 px-6 pb-6">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center">
+      {/* Main Content - Centered */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-md text-center">
+          {/* Logo */}
+          <div className="mb-8">
             <img 
               src="/images/anidojo-logo.png" 
               alt="AniDojo" 
-              className="h-48 w-auto"
+              className="h-32 w-auto mx-auto"
             />
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 h-screen flex flex-col items-center justify-start px-6 pt-2">
-        <div className="w-full max-w-md text-center">
           {/* Main Slogan */}
-          <div className="mb-4">
+          <div className="mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
               What Anime do You Want to Watch?
             </h2>
           </div>
 
           {/* Call to Action Buttons */}
-          <div className="mb-4 flex gap-3 justify-center">
+          <div className="flex gap-3 justify-center">
             <button
               onClick={async (e) => {
                 e.preventDefault();
@@ -73,7 +69,6 @@ export default function AuthPage() {
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </div>
-
         </div>
       </div>
     </div>
