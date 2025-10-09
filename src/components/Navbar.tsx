@@ -1,10 +1,8 @@
 'use client';
 
 import Link from "next/link";
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
-  const { user, isAuthenticated, signOut } = useAuth();
 	return (
 		<header className="w-full absolute top-0 left-0 right-0 z-50 bg-transparent">
 			<div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6">
@@ -19,7 +17,7 @@ export default function Navbar() {
 					</nav>
 				</div>
 				
-				{/* Right side - Search Input and Auth */}
+				{/* Right side - Search Input */}
 				<div className="flex items-center gap-4">
 					<div className="relative">
 						<input
@@ -33,19 +31,6 @@ export default function Navbar() {
 							</svg>
 						</div>
 					</div>
-					{isAuthenticated && (
-						<div className="flex items-center gap-4">
-							<span className="text-white font-semibold drop-shadow-md">
-								Welcome, {user?.username}
-							</span>
-							<button
-								onClick={signOut}
-								className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white font-semibold hover:bg-white/30 transition-all duration-200"
-							>
-								SIGN OUT
-							</button>
-						</div>
-					)}
 				</div>
 			</div>
 		</header>
