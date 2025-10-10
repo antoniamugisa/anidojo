@@ -148,7 +148,7 @@ export default function DashboardPage() {
     { name: 'Home', icon: Home, href: '/dashboard', active: true },
     { name: 'Search', icon: Search, href: '/search' },
     { name: 'AI Recommender', icon: Sparkles, href: '/discover' },
-    { name: 'My Lists', icon: List, href: '/lists' },
+    { name: 'My Lists', icon: List, href: '/my-lists' },
     { name: 'My Reviews', icon: Star, href: '/my-reviews' },
     { name: 'Upcoming', icon: Calendar, href: '/upcoming' },
     { name: 'Profile', icon: User, href: '/profile' },
