@@ -10,20 +10,9 @@ export default function AuthPage() {
 
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-black">
       {/* Navigation Bar */}
       <AuthNavbar />
-      
-      {/* Background Image with Dark Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/images/hero-img.jpeg')"
-        }}
-      />
-      
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/70"></div>
       
       {/* Main Content - Centered */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
