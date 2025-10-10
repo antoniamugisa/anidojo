@@ -276,8 +276,8 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
-                {recommendedAnime.map((anime) => (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+              {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
                   <div key={anime.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
                     <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
                       <img
@@ -299,7 +299,11 @@ export default function DashboardPage() {
                       Add to List
                     </button>
                   </div>
-                ))}
+                )) : (
+                  <div className="col-span-full text-center py-20">
+                    <p className="text-gray-400 text-lg">No anime data available</p>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -314,7 +318,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="flex space-x-4 overflow-x-auto pb-4">
-              {trendingAnime.slice(0, 10).map((anime, index) => (
+              {trendingAnime && trendingAnime.length > 0 ? trendingAnime.slice(0, 10).map((anime, index) => (
                 <div key={anime.mal_id} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative">
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {index + 1}
@@ -336,7 +340,11 @@ export default function DashboardPage() {
                     )}
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="flex-shrink-0 w-full text-center py-20">
+                  <p className="text-gray-400 text-lg">No trending anime data available</p>
+                </div>
+              )}
             </div>
           </section>
 
@@ -350,7 +358,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {upcomingAnime.slice(0, 8).map((anime) => (
+              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime) => (
                 <div key={anime.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
                     <img
@@ -369,7 +377,11 @@ export default function DashboardPage() {
                     Notify Me
                   </button>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-full text-center py-20">
+                  <p className="text-gray-400 text-lg">No upcoming anime data available</p>
+                </div>
+              )}
             </div>
           </section>
 
