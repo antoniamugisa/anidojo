@@ -3,6 +3,30 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  Search, 
+  Bell, 
+  ChevronDown, 
+  Menu, 
+  Home, 
+  Compass, 
+  List, 
+  Calendar, 
+  Star, 
+  User, 
+  Settings, 
+  LogOut,
+  Play,
+  Heart,
+  Share2,
+  Plus,
+  Eye,
+  Clock,
+  TrendingUp,
+  Calendar as CalendarIcon,
+  MessageCircle,
+  ThumbsUp
+} from 'lucide-react';
 
 // Types for Jikan API responses
 interface Anime {
@@ -113,13 +137,13 @@ export default function DashboardPage() {
   };
 
   const sidebarItems = [
-    { name: 'Home', icon: '🏠', href: '/dashboard', active: true },
-    { name: 'Discover', icon: '🧭', href: '/discover' },
-    { name: 'My Lists', icon: '📋', href: '/lists' },
-    { name: 'Upcoming', icon: '📅', href: '/upcoming' },
-    { name: 'Reviews', icon: '⭐', href: '/reviews' },
-    { name: 'Profile', icon: '👤', href: '/profile' },
-    { name: 'Settings', icon: '⚙️', href: '/settings' },
+    { name: 'Home', icon: Home, href: '/dashboard', active: true },
+    { name: 'Discover', icon: Compass, href: '/discover' },
+    { name: 'My Lists', icon: List, href: '/lists' },
+    { name: 'Upcoming', icon: Calendar, href: '/upcoming' },
+    { name: 'Reviews', icon: Star, href: '/reviews' },
+    { name: 'Profile', icon: User, href: '/profile' },
+    { name: 'Settings', icon: Settings, href: '/settings' },
   ];
 
   return (
@@ -144,9 +168,7 @@ export default function DashboardPage() {
                 className="w-full px-4 py-2 pl-10 pr-4 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="w-4 h-4 text-gray-400" />
               </div>
             </div>
           </div>
@@ -155,9 +177,7 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-4">
             {/* Notifications */}
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 0 0-15 0v5h5l-5 5-5-5h5V7a7.5 7.5 0 0 1 15 0v10z" />
-              </svg>
+              <Bell className="w-6 h-6" />
             </button>
 
             {/* Profile Dropdown */}
@@ -167,9 +187,7 @@ export default function DashboardPage() {
                   <span className="text-sm font-bold">U</span>
                 </div>
                 <span className="text-sm">User</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDown className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -179,9 +197,7 @@ export default function DashboardPage() {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu className="w-6 h-6" />
           </button>
         </div>
       </nav>
@@ -191,27 +207,30 @@ export default function DashboardPage() {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}>
         <nav className="p-6 space-y-2">
-          {sidebarItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                item.active
-                  ? 'bg-red-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <span className="text-xl">{item.icon}</span>
-              <span className="font-medium">{item.name}</span>
-            </Link>
-          ))}
+          {sidebarItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  item.active
+                    ? 'bg-red-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <IconComponent className="w-5 h-5" />
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
           
           {/* Logout Button */}
           <button
             onClick={handleLogout}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
-            <span className="text-xl">🚪</span>
+            <LogOut className="w-5 h-5" />
             <span className="font-medium">Logout</span>
           </button>
         </nav>
@@ -234,7 +253,7 @@ export default function DashboardPage() {
                 <div key={item.anime_id} className="flex-shrink-0 w-64 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800">
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-4xl">🎌</span>
+                      <Play className="w-12 h-12 text-gray-400" />
                     </div>
                   </div>
                   <h3 className="font-semibold text-white mb-2 line-clamp-2">{item.title}</h3>
@@ -301,9 +320,10 @@ export default function DashboardPage() {
                         e.stopPropagation();
                         alert('Add to List clicked');
                       }}
-                      className="w-full mt-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="w-full mt-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2"
                     >
-                      Add to List
+                      <Plus className="w-4 h-4" />
+                      <span>Add to List</span>
                     </button>
                   </Link>
                 )) : (

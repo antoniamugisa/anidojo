@@ -3,6 +3,29 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  ChevronDown, 
+  Heart, 
+  Share2, 
+  Star, 
+  Play, 
+  Calendar, 
+  Clock, 
+  User, 
+  Film,
+  MessageCircle,
+  ThumbsUp,
+  MessageSquare,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  Download,
+  Eye,
+  EyeOff,
+  Settings,
+  Home,
+  ArrowLeft
+} from 'lucide-react';
 
 // Types for Jikan API responses
 interface AnimeDetails {
@@ -317,7 +340,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
       </nav>
 
       {/* Hero Section */}
-      <section className="relative h-96 overflow-hidden">
+      <section className="relative h-[500px] overflow-hidden">
         {/* Background Banner */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -331,51 +354,51 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
         
         {/* Content */}
-        <div className="relative z-10 h-full flex items-center px-6">
-          <div className="flex items-start space-x-8 max-w-7xl mx-auto w-full">
+        <div className="relative z-10 h-full flex items-center px-6 py-12">
+          <div className="flex items-start space-x-12 max-w-7xl mx-auto w-full">
             {/* Anime Poster */}
             <div className="flex-shrink-0">
               <img
                 src={anime.images.jpg.large_image_url}
                 alt={anime.title}
-                className="w-64 h-80 object-cover rounded-lg shadow-2xl"
+                className="w-72 h-96 object-cover rounded-lg shadow-2xl"
               />
             </div>
             
             {/* Anime Info */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-4xl font-bold text-white mb-2">
+                <h1 className="text-5xl font-bold text-white mb-3">
                   {anime.title_english || anime.title}
                 </h1>
                 {anime.title_japanese && anime.title_japanese !== anime.title && (
-                  <h2 className="text-2xl text-gray-300 mb-4">
+                  <h2 className="text-3xl text-gray-300 mb-6">
                     {anime.title_japanese}
                   </h2>
                 )}
               </div>
               
               {/* Rating and Reviews */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 {anime.score && (
-                  <div className="flex items-center space-x-2">
-                    <div className="text-3xl font-bold text-white">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-4xl font-bold text-white">
                       {anime.score}
                     </div>
                     <div className="text-gray-400">
-                      <div className="text-sm">/ 10</div>
-                      <div className="text-xs">{anime.scored_by?.toLocaleString()} reviews</div>
+                      <div className="text-lg">/ 10</div>
+                      <div className="text-sm">{anime.scored_by?.toLocaleString()} reviews</div>
                     </div>
                   </div>
                 )}
               </div>
               
               {/* Genres */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {anime.genres.slice(0, 5).map((genre) => (
                   <span
                     key={genre.mal_id}
-                    className="px-3 py-1 bg-red-600 text-white text-sm rounded-full"
+                    className="px-4 py-2 bg-red-600 text-white text-sm rounded-full font-medium"
                   >
                     {genre.name}
                   </span>
@@ -383,8 +406,8 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
               </div>
               
               {/* Status and Info */}
-              <div className="flex items-center space-x-6 text-sm">
-                <span className={`px-3 py-1 rounded-full ${getStatusColor(anime.status)}`}>
+              <div className="flex items-center space-x-8 text-base">
+                <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(anime.status)}`}>
                   {anime.status}
                 </span>
                 {anime.episodes && (
@@ -406,19 +429,19 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
               
               {/* Studio */}
               {anime.studios.length > 0 && (
-                <div className="text-gray-300">
+                <div className="text-gray-300 text-lg">
                   <span className="text-gray-500">Studio: </span>
                   {anime.studios.map(studio => studio.name).join(', ')}
                 </div>
               )}
               
               {/* Action Buttons */}
-              <div className="flex items-center space-x-4 pt-4">
+              <div className="flex items-center space-x-6 pt-6">
                 <div className="relative">
                   <select
                     value={userList}
                     onChange={(e) => handleAddToList(e.target.value)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors appearance-none pr-8"
+                    className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-medium transition-colors appearance-none pr-10 text-base"
                   >
                     <option value="">Add to List</option>
                     <option value="Currently Watching">Currently Watching</option>
@@ -426,34 +449,28 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                     <option value="Completed">Completed</option>
                     <option value="Dropped">Dropped</option>
                   </select>
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <ChevronDown className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 
-                <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base">
                   Write Review
                 </button>
                 
                 <button
                   onClick={handleToggleFavorite}
-                  className={`p-3 rounded-lg transition-colors ${
+                  className={`p-4 rounded-lg transition-colors ${
                     isFavorite 
                       ? 'bg-red-600 text-white' 
                       : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
                   }`}
                 >
-                  <svg className="w-6 h-6" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+                  <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
                 </button>
                 
-                <button className="p-3 bg-white/10 text-gray-400 hover:text-white hover:bg-white/20 rounded-lg transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                  </svg>
+                <button className="p-4 bg-white/10 text-gray-400 hover:text-white hover:bg-white/20 rounded-lg transition-colors">
+                  <Share2 className="w-6 h-6" />
                 </button>
               </div>
             </div>
@@ -483,14 +500,14 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
       </section>
 
       {/* Tab Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {activeTab === 'overview' && (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {/* Synopsis */}
             {anime.synopsis && (
-              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Synopsis</h3>
-                <p className="text-gray-300 leading-relaxed">
+              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h3 className="text-2xl font-bold text-white mb-6">Synopsis</h3>
+                <p className="text-gray-300 leading-relaxed text-lg">
                   {expandedSynopsis || anime.synopsis.length < 500
                     ? anime.synopsis
                     : anime.synopsis.substring(0, 500) + '...'
@@ -508,65 +525,65 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
             )}
 
             {/* Information Grid */}
-            <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-6">Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Type:</span>
-                    <span className="text-white">{anime.type || 'N/A'}</span>
+            <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h3 className="text-2xl font-bold text-white mb-8">Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Type:</span>
+                    <span className="text-white text-lg font-medium">{anime.type || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Episodes:</span>
-                    <span className="text-white">{anime.episodes || 'N/A'}</span>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Episodes:</span>
+                    <span className="text-white text-lg font-medium">{anime.episodes || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Status:</span>
-                    <span className="text-white">{anime.status}</span>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Status:</span>
+                    <span className="text-white text-lg font-medium">{anime.status}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Aired:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Aired:</span>
+                    <span className="text-white text-lg font-medium">
                       {formatDate(anime.aired.from)} - {formatDate(anime.aired.to || '')}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Premiered:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Premiered:</span>
+                    <span className="text-white text-lg font-medium">
                       {anime.premiered ? `${anime.premiered.season} ${anime.premiered.year}` : 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Duration:</span>
-                    <span className="text-white">{anime.duration || 'N/A'}</span>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Duration:</span>
+                    <span className="text-white text-lg font-medium">{anime.duration || 'N/A'}</span>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Rating:</span>
-                    <span className="text-white">{anime.rating || 'N/A'}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Rating:</span>
+                    <span className="text-white text-lg font-medium">{anime.rating || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Studios:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Studios:</span>
+                    <span className="text-white text-lg font-medium">
                       {anime.studios.map(s => s.name).join(', ') || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Producers:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Producers:</span>
+                    <span className="text-white text-lg font-medium">
                       {anime.producers.map(p => p.name).join(', ') || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Genres:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Genres:</span>
+                    <span className="text-white text-lg font-medium">
                       {anime.genres.map(g => g.name).join(', ') || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Themes:</span>
-                    <span className="text-white">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-400 text-lg">Themes:</span>
+                    <span className="text-white text-lg font-medium">
                       {anime.themes.map(t => t.name).join(', ') || 'N/A'}
                     </span>
                   </div>
@@ -576,8 +593,8 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
 
             {/* Trailer */}
             {anime.trailer?.youtube_id && (
-              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Trailer</h3>
+              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h3 className="text-2xl font-bold text-white mb-6">Trailer</h3>
                 <div className="aspect-video rounded-lg overflow-hidden">
                   <iframe
                     src={`https://www.youtube.com/embed/${anime.trailer.youtube_id}`}
@@ -591,13 +608,13 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
 
             {/* Related Anime */}
             {anime.relations && anime.relations.length > 0 && (
-              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Related Anime</h3>
+              <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h3 className="text-2xl font-bold text-white mb-6">Related Anime</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {anime.relations.slice(0, 8).map((relation, index) => (
                     <div key={index} className="text-center">
                       <div className="aspect-[3/4] bg-gray-800 rounded-lg mb-2 flex items-center justify-center">
-                        <span className="text-2xl">🎌</span>
+                        <Film className="w-8 h-8 text-gray-400" />
                       </div>
                       <p className="text-sm text-gray-300 mb-1">{relation.relation}</p>
                       <p className="text-xs text-gray-400 line-clamp-2">
@@ -612,11 +629,11 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         )}
 
         {activeTab === 'episodes' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Progress Tracker */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Episode Progress</h3>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-white">Episode Progress</h3>
                 <span className="text-gray-400">
                   {watchedEpisodes.size} / {episodes.length} watched
                 </span>
@@ -630,11 +647,11 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
             </div>
 
             {/* Episodes List */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               {episodes.length > 0 ? episodes.map((episode, index) => (
                 <div
                   key={episode.mal_id}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4 hover:border-red-500/50 transition-all duration-300"
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-red-500/50 transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
                     <input
@@ -682,16 +699,16 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         )}
 
         {activeTab === 'reviews' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold text-white">Reviews</h3>
+              <h3 className="text-2xl font-bold text-white">Reviews</h3>
               <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
                 Write a Review
               </button>
             </div>
 
             {/* Mock Reviews */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {[
                 {
                   user: 'AnimeFan92',
@@ -712,7 +729,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                   notHelpful: 8
                 }
               ].map((review, index) => (
-                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-green-400 font-bold text-lg">{review.avatar}</span>
@@ -759,12 +776,12 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         )}
 
         {activeTab === 'characters' && (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold text-white">Characters</h3>
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Characters</h3>
             {anime.characters && anime.characters.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {anime.characters.slice(0, 12).map((character, index) => (
-                  <div key={character.character.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 text-center">
+                  <div key={character.character.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
                     <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
                       <img
                         src={character.character.images.jpg.image_url}
@@ -776,7 +793,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                         }}
                       />
                       <div className="w-full h-full flex items-center justify-center text-4xl" style={{ display: 'none' }}>
-                        👤
+                        <User className="w-6 h-6 text-gray-400" />
                       </div>
                     </div>
                     <h4 className="font-semibold text-white mb-1 line-clamp-2">
@@ -800,12 +817,12 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         )}
 
         {activeTab === 'staff' && (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold text-white">Staff</h3>
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Staff</h3>
             {anime.staff && anime.staff.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {anime.staff.slice(0, 20).map((member, index) => (
-                  <div key={member.person.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+                  <div key={member.person.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
                     <div className="flex items-center space-x-4">
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center flex-shrink-0">
                         <img
@@ -818,7 +835,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                           }}
                         />
                         <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: 'none' }}>
-                          👤
+                          <User className="w-6 h-6 text-gray-400" />
                         </div>
                       </div>
                       <div className="flex-1">
@@ -840,13 +857,13 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         )}
 
         {activeTab === 'stats' && (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold text-white">Statistics</h3>
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Statistics</h3>
             
             {/* Score Distribution */}
             {anime.statistics?.scores && (
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Score Distribution</h4>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h4 className="text-xl font-semibold text-white mb-6">Score Distribution</h4>
                 <div className="space-y-2">
                   {Object.entries(anime.statistics.scores).map(([score, data]) => (
                     <div key={score} className="flex items-center space-x-4">
@@ -868,8 +885,8 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
 
             {/* List Statistics */}
             {anime.statistics && (
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">List Statistics</h4>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h4 className="text-xl font-semibold text-white mb-6">List Statistics</h4>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-400">
@@ -906,8 +923,8 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
             )}
 
             {/* General Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 text-center">
                 <div className="text-3xl font-bold text-white mb-2">
                   {anime.members?.toLocaleString() || 'N/A'}
                 </div>
