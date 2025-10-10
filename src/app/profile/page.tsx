@@ -118,11 +118,16 @@ export default function ProfilePage() {
   const [animeList, setAnimeList] = useState<AnimeEntry[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [favorites, setFavorites] = useState({
-    anime: AnimeEntry[],
-    characters: Array<{ id: number; name: string; image: string; anime: string }>,
-    voiceActors: Array<{ id: number; name: string; image: string; anime: string }>,
-    studios: Array<{ id: number; name: string; animeCount: number }>
+  const [favorites, setFavorites] = useState<{
+    anime: AnimeEntry[];
+    characters: Array<{ id: number; name: string; image: string; anime: string }>;
+    voiceActors: Array<{ id: number; name: string; image: string; anime: string }>;
+    studios: Array<{ id: number; name: string; animeCount: number }>;
+  }>({
+    anime: [],
+    characters: [],
+    voiceActors: [],
+    studios: []
   });
   const router = useRouter();
 
