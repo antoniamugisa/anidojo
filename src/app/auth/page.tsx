@@ -118,30 +118,16 @@ export default function AuthPage() {
           {/* Call to Action Buttons */}
           <div className="flex gap-3 justify-center">
             <button
-              onClick={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                // Simulate sign in
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                router.push('/');
-              }}
-              disabled={loading}
-              className="bg-transparent border border-red-500/50 hover:bg-red-500/10 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => router.push('/signin')}
+              className="bg-transparent border border-red-500/50 hover:bg-red-500/10 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              Sign In
             </button>
             <button
-              onClick={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                // Simulate account creation
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                router.push('/');
-              }}
-              disabled={loading}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => router.push('/signup')}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-base transition-colors duration-200 shadow-lg hover:shadow-xl"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              Create Account
             </button>
           </div>
         </div>
@@ -169,7 +155,7 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {moodAnime.map((anime, index) => (
+              {moodAnime && moodAnime.length > 0 ? moodAnime.map((anime, index) => (
                 <div
                   key={anime.mal_id}
                   className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-red-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
@@ -194,7 +180,11 @@ export default function AuthPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-full text-center py-20">
+                  <p className="text-gray-400 text-lg">No anime data available</p>
+                </div>
+              )}
             </div>
           )}
           
@@ -303,7 +293,7 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {upcomingAnime.map((anime, index) => (
+              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.map((anime, index) => (
                 <div
                   key={anime.mal_id}
                   className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:border-red-500/50 hover:scale-105 transition-all duration-300 cursor-pointer"
@@ -334,7 +324,11 @@ export default function AuthPage() {
                     )}
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-full text-center py-20">
+                  <p className="text-gray-400 text-lg">No anime data available</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -362,7 +356,7 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="space-y-10 mb-16">
-              {reviewAnime.map((anime, index) => (
+              {reviewAnime && reviewAnime.length > 0 ? reviewAnime.map((anime, index) => (
                 <div
                   key={anime.mal_id}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:border-green-500/50 transition-all duration-300"
@@ -414,7 +408,11 @@ export default function AuthPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-20">
+                  <p className="text-gray-400 text-lg">No anime data available</p>
+                </div>
+              )}
             </div>
           )}
           
