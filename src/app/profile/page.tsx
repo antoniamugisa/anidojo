@@ -31,6 +31,7 @@ import {
   TrendingUp,
   Award,
   Users,
+  User,
   Film,
   Music,
   BookOpen,
