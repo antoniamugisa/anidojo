@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AuthNavbar from '@/components/AuthNavbar';
 
 export default function AuthPage() {
   const [loading, setLoading] = useState(false);
@@ -10,6 +11,9 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen relative">
+      {/* Navigation Bar */}
+      <AuthNavbar />
+      
       {/* Background Image with Dark Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
