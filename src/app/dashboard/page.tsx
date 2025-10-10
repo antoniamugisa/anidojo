@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import GlobalSearch from '@/components/GlobalSearch';
 import { 
   Search, 
   Bell, 
@@ -97,7 +98,6 @@ export default function DashboardPage() {
   const [trendingAnime, setTrendingAnime] = useState<Anime[]>([]);
   const [upcomingAnime, setUpcomingAnime] = useState<Anime[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   // Mock authentication check
@@ -146,6 +146,7 @@ export default function DashboardPage() {
 
   const sidebarItems = [
     { name: 'Home', icon: Home, href: '/dashboard', active: true },
+    { name: 'Search', icon: Search, href: '/search' },
     { name: 'AI Recommender', icon: Sparkles, href: '/discover' },
     { name: 'My Lists', icon: List, href: '/lists' },
     { name: 'Upcoming', icon: Calendar, href: '/upcoming' },
@@ -167,18 +168,7 @@ export default function DashboardPage() {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search anime..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 pr-4 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <Search className="w-4 h-4 text-gray-400" />
-              </div>
-            </div>
+            <GlobalSearch />
           </div>
 
           {/* Right Side */}
