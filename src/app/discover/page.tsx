@@ -150,6 +150,15 @@ export default function DiscoverPage() {
     loadData();
   }, []);
 
+  // Handle mood pre-selection from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const moodParam = urlParams.get('mood');
+    if (moodParam && moods.some(mood => mood.id === moodParam)) {
+      setSelectedMoods([moodParam]);
+    }
+  }, []);
+
   const moods: Mood[] = [
     {
       id: 'excited',
