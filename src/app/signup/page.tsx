@@ -81,8 +81,9 @@ export default function SignUpPage() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     setLoading(false);
+    localStorage.setItem('isAuthenticated', 'true');
     alert('Account created successfully!');
-    router.push('/signin');
+    router.push('/dashboard');
   };
 
   const handleSocialLogin = (provider: string) => {

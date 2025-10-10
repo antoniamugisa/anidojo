@@ -62,8 +62,9 @@ export default function SignInPage() {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setLoading(false);
+    localStorage.setItem('isAuthenticated', 'true');
     alert('Sign in successful!');
-    router.push('/');
+    router.push('/dashboard');
   };
 
   const handleSocialLogin = (provider: string) => {
