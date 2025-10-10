@@ -149,8 +149,8 @@ export default function DashboardPage() {
     { name: 'Search', icon: Search, href: '/search' },
     { name: 'AI Recommender', icon: Sparkles, href: '/discover' },
     { name: 'My Lists', icon: List, href: '/lists' },
+    { name: 'My Reviews', icon: Star, href: '/my-reviews' },
     { name: 'Upcoming', icon: Calendar, href: '/upcoming' },
-    { name: 'Reviews', icon: Star, href: '/reviews' },
     { name: 'Profile', icon: User, href: '/profile' },
     { name: 'Settings', icon: Settings, href: '/settings' },
   ];
@@ -302,14 +302,20 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
-                  <button className={`w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
-                    item.hasReview 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}>
-                    <BookOpen className="w-4 h-4" />
-                    <span>{item.hasReview ? 'Already Reviewed' : 'Write Review'}</span>
-                  </button>
+                  {item.hasReview ? (
+                    <button className="w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 bg-gray-600 text-gray-400 cursor-not-allowed">
+                      <BookOpen className="w-4 h-4" />
+                      <span>Already Reviewed</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/anime/${item.id}/review`}
+                      className="w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Write Review</span>
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>
@@ -407,17 +413,14 @@ export default function DashboardPage() {
                         <Plus className="w-3 h-3" />
                         <span>Add to List</span>
                       </button>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          alert('Write Review clicked');
-                        }}
+                      <Link
+                        href={`/anime/${anime.mal_id}/review`}
+                        onClick={(e) => e.stopPropagation()}
                         className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-1"
                       >
                         <BookOpen className="w-3 h-3" />
                         <span>Review</span>
-                      </button>
+                      </Link>
                     </div>
                   </Link>
                 )) : (

@@ -454,9 +454,12 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                   </div>
                 </div>
                 
-                <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base">
+                <Link
+                  href={`/anime/${animeDetails.mal_id}/review`}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base inline-flex items-center justify-center"
+                >
                   Write Review
-                </button>
+                </Link>
                 
                 <button
                   onClick={handleToggleFavorite}
