@@ -24,7 +24,27 @@ import {
   EyeOff,
   Settings,
   Home,
-  ArrowLeft
+  ArrowLeft,
+  ExternalLink,
+  Flag,
+  Bell,
+  Plus,
+  Minus,
+  Check,
+  X,
+  Copy,
+  Twitter,
+  Facebook,
+  Link as LinkIcon,
+  Monitor,
+  Smartphone,
+  Globe,
+  BookOpen,
+  Users,
+  TrendingUp,
+  Award,
+  Zap,
+  AlertTriangle
 } from 'lucide-react';
 
 // Types for Jikan API responses
@@ -208,6 +228,14 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
   const [userList, setUserList] = useState<string>('');
   const [expandedSynopsis, setExpandedSynopsis] = useState(false);
   const [watchedEpisodes, setWatchedEpisodes] = useState<Set<number>>(new Set());
+  const [userRating, setUserRating] = useState<number>(0);
+  const [episodesWatched, setEpisodesWatched] = useState<number>(0);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [streamingServices, setStreamingServices] = useState<Array<{name: string, url: string, available: boolean}>>([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [userListStatus, setUserListStatus] = useState<string>('');
   const router = useRouter();
 
   // Mock authentication check
@@ -274,6 +302,59 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
       }
       return newSet;
     });
+  };
+
+  const handleShare = async (platform: string) => {
+    const url = window.location.href;
+    const title = anime?.title_english || anime?.title || 'Anime';
+    
+    switch (platform) {
+      case 'copy':
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'discord':
+        await navigator.clipboard.writeText(`${title} - ${url}`);
+        alert('Discord share text copied to clipboard!');
+        break;
+    }
+    setShowShareModal(false);
+  };
+
+  const handleReport = () => {
+    // In a real app, this would open a report form
+    alert('Report functionality would open a form here');
+    setShowReportModal(false);
+  };
+
+  const handleEditSuggestion = () => {
+    // In a real app, this would open an edit suggestion form
+    alert('Edit suggestion functionality would open a form here');
+    setShowEditModal(false);
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setUserRating(rating);
+    // In a real app, this would save to the backend
+  };
+
+  const handleEpisodeProgress = (increment: boolean) => {
+    if (increment && episodesWatched < (anime?.episodes || 0)) {
+      setEpisodesWatched(prev => prev + 1);
+    } else if (!increment && episodesWatched > 0) {
+      setEpisodesWatched(prev => prev - 1);
+    }
+  };
+
+  const handleNotificationToggle = () => {
+    setNotificationsEnabled(!notificationsEnabled);
+    // In a real app, this would save notification preferences
   };
 
   const formatDate = (dateString: string) => {
@@ -437,45 +518,120 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               )}
               
               {/* Action Buttons */}
-              <div className="flex items-center space-x-6 pt-6">
-                <div className="relative">
-                  <select
-                    value={userList}
-                    onChange={(e) => handleAddToList(e.target.value)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-medium transition-colors appearance-none pr-10 text-base"
-                  >
-                    <option value="">Add to List</option>
-                    <option value="Currently Watching">Currently Watching</option>
-                    <option value="Plan to Watch">Plan to Watch</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Dropped">Dropped</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <ChevronDown className="w-5 h-5 text-white" />
+              <div className="space-y-4 pt-6">
+                {/* Main Action Row */}
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <select
+                      value={userListStatus || userList}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setUserListStatus(value);
+                        handleAddToList(value);
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-medium transition-colors appearance-none pr-10 text-base"
+                    >
+                      <option value="">{userListStatus ? 'Update Status' : 'Add to List'}</option>
+                      <option value="Currently Watching">Currently Watching</option>
+                      <option value="Plan to Watch">Plan to Watch</option>
+                      <option value="Completed">Completed</option>
+                      <option value="On Hold">On Hold</option>
+                      <option value="Dropped">Dropped</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <ChevronDown className="w-5 h-5 text-white" />
+                    </div>
                   </div>
+                  
+                  <Link
+                    href={`/anime/${anime.mal_id}/review`}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base inline-flex items-center justify-center"
+                  >
+                    Write Review
+                  </Link>
+                  
+                  <button
+                    onClick={handleToggleFavorite}
+                    className={`p-4 rounded-lg transition-colors ${
+                      isFavorite 
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
+                  </button>
+                  
+                  <button 
+                    onClick={() => setShowShareModal(true)}
+                    className="p-4 bg-white/10 text-gray-400 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <Share2 className="w-6 h-6" />
+                  </button>
                 </div>
-                
-                <Link
-                  href={`/anime/${anime.mal_id}/review`}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base inline-flex items-center justify-center"
-                >
-                  Write Review
-                </Link>
-                
-                <button
-                  onClick={handleToggleFavorite}
-                  className={`p-4 rounded-lg transition-colors ${
-                    isFavorite 
-                      ? 'bg-red-600 text-white' 
-                      : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
-                  }`}
-                >
-                  <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
-                </button>
-                
-                <button className="p-4 bg-white/10 text-gray-400 hover:text-white hover:bg-white/20 rounded-lg transition-colors">
-                  <Share2 className="w-6 h-6" />
-                </button>
+
+                {/* Quick Actions Row */}
+                <div className="flex items-center space-x-3">
+                  <button 
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
+                  >
+                    <Flag className="w-4 h-4" />
+                    <span>Report</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Suggest Edit</span>
+                  </button>
+
+                  {anime.status === 'Currently Airing' && (
+                    <button 
+                      onClick={handleNotificationToggle}
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-sm ${
+                        notificationsEnabled 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Bell className="w-4 h-4" />
+                      <span>{notificationsEnabled ? 'Notifications On' : 'Notify Me'}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Streaming Availability */}
+                {streamingServices.length > 0 && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-3 flex items-center space-x-2">
+                      <Monitor className="w-5 h-5" />
+                      <span>Where to Watch</span>
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {streamingServices.map((service, index) => (
+                        <a
+                          key={index}
+                          href={service.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+                            service.available 
+                              ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30' 
+                              : 'bg-gray-600/20 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span>{service.name}</span>
+                        </a>
+                      ))}
+                    </div>
+                    {streamingServices.every(s => !s.available) && (
+                      <p className="text-gray-400 text-sm mt-2">Not available in your region</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -486,7 +642,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
       <section className="bg-black/95 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex space-x-8">
-            {['overview', 'episodes', 'reviews', 'characters', 'staff', 'stats'].map((tab) => (
+            {['overview', 'episodes', 'reviews', 'characters', 'staff', 'recommendations', 'related', 'statistics', 'media', 'news'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -502,6 +658,99 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
           </nav>
         </div>
       </section>
+
+      {/* Sticky Watchlist Actions Panel */}
+      <div className="sticky top-16 z-40 bg-black/95 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {/* Current Status */}
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-400 text-sm">Status:</span>
+                <select
+                  value={userListStatus || userList}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setUserListStatus(value);
+                    handleAddToList(value);
+                  }}
+                  className="bg-white/10 text-white px-3 py-1 rounded text-sm border border-white/20"
+                >
+                  <option value="">Not in List</option>
+                  <option value="Currently Watching">Watching</option>
+                  <option value="Plan to Watch">Plan to Watch</option>
+                  <option value="Completed">Completed</option>
+                  <option value="On Hold">On Hold</option>
+                  <option value="Dropped">Dropped</option>
+                </select>
+              </div>
+
+              {/* Episode Progress */}
+              {anime.episodes && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-400 text-sm">Episodes:</span>
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => handleEpisodeProgress(false)}
+                      className="p-1 bg-white/10 hover:bg-white/20 rounded text-white"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="text-white text-sm px-2">
+                      {episodesWatched}/{anime.episodes}
+                    </span>
+                    <button
+                      onClick={() => handleEpisodeProgress(true)}
+                      className="p-1 bg-white/10 hover:bg-white/20 rounded text-white"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Rating */}
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-400 text-sm">Rating:</span>
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => handleRatingChange(rating)}
+                      className={`w-6 h-6 rounded text-xs transition-colors ${
+                        rating <= userRating
+                          ? 'bg-red-600 text-white'
+                          : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                      }`}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <Link
+                href={`/anime/${anime.mal_id}/review`}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Write Review
+              </Link>
+              <button
+                onClick={handleToggleFavorite}
+                className={`p-2 rounded-lg transition-colors ${
+                  isFavorite 
+                    ? 'bg-red-600 text-white' 
+                    : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Tab Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
@@ -823,40 +1072,339 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
         {activeTab === 'staff' && (
           <div className="space-y-8">
             <h3 className="text-2xl font-bold text-white">Staff</h3>
-            {anime.staff && anime.staff.length > 0 ? (
-              <div className="space-y-6">
-                {anime.staff.slice(0, 20).map((member, index) => (
-                  <div key={member.person.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center flex-shrink-0">
-                        <img
-                          src={member.person.images.jpg.image_url}
-                          alt={member.person.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling.style.display = 'flex';
-                          }}
-                        />
-                        <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: 'none' }}>
-                          <User className="w-6 h-6 text-gray-400" />
+            
+            {/* Production Staff */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Production Staff</h4>
+              {anime.staff && anime.staff.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {anime.staff.slice(0, 20).map((member, index) => (
+                    <div key={member.person.mal_id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center flex-shrink-0">
+                          <img
+                            src={member.person.images.jpg.image_url}
+                            alt={member.person.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                          <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: 'none' }}>
+                            <User className="w-6 h-6 text-gray-400" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-white hover:text-red-400 cursor-pointer">
+                            {member.person.name}
+                          </h4>
+                          <p className="text-sm text-gray-400">
+                            {member.positions.join(', ')}
+                          </p>
+                          <button className="text-xs text-green-400 hover:text-green-300 mt-1">
+                            View Other Works
+                          </button>
                         </div>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-400 text-lg">No staff data available</p>
+                </div>
+              )}
+            </div>
+
+            {/* Studio Information */}
+            {anime.studios.length > 0 && (
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h4 className="text-xl font-semibold text-white mb-6">Studio Information</h4>
+                <div className="space-y-6">
+                  {anime.studios.map((studio, index) => (
+                    <div key={studio.mal_id} className="bg-white/5 rounded-lg p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-20 h-20 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Film className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-white font-semibold text-lg mb-2">{studio.name}</h5>
+                          <p className="text-gray-400 mb-4">
+                            Animation studio responsible for this anime's production.
+                          </p>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <span className="px-3 py-1 bg-red-600/20 text-red-400 text-sm rounded-full">
+                              Animation
+                            </span>
+                            <span className="px-3 py-1 bg-green-600/20 text-green-400 text-sm rounded-full">
+                              Production
+                            </span>
+                          </div>
+                          <div className="flex space-x-3">
+                            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                              View All from Studio
+                            </button>
+                            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                              Follow Studio
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other Popular Anime by Studio */}
+            {anime.studios.length > 0 && (
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+                <h4 className="text-xl font-semibold text-white mb-6">Other Popular Anime by {anime.studios[0]?.name}</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((item) => (
+                    <div key={item} className="text-center">
+                      <div className="aspect-[3/4] bg-gray-800 rounded-lg mb-2 flex items-center justify-center">
+                        <Film className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-300 mb-1">Studio Anime {item}</p>
+                      <div className="flex items-center justify-center space-x-1 mb-2">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-gray-400">8.{item}</span>
+                      </div>
+                      <button className="w-full py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
+                        Add to List
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'recommendations' && (
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Recommendations</h3>
+            
+            {/* Similar Anime Section */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">If you liked this, you might like...</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((item) => (
+                  <div key={item} className="text-center">
+                    <div className="aspect-[3/4] bg-gray-800 rounded-lg mb-2 flex items-center justify-center">
+                      <Film className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-300 mb-1">Similar Anime {item}</p>
+                    <div className="flex items-center justify-center space-x-1 mb-2">
+                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                      <span className="text-xs text-gray-400">8.{item}</span>
+                    </div>
+                    <button className="w-full py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
+                      Add to List
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Recommendations */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-xl font-semibold text-white">AI Suggests</h4>
+                <Link href="/discover" className="text-green-400 hover:text-green-300 text-sm">
+                  See More AI Recommendations
+                </Link>
+              </div>
+              <p className="text-gray-300 mb-4">Based on your lists and reviews</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="bg-white/5 rounded-lg p-4">
+                    <div className="flex space-x-3">
+                      <div className="w-16 h-20 bg-gray-800 rounded flex items-center justify-center flex-shrink-0">
+                        <Film className="w-6 h-6 text-gray-400" />
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-white">{member.person.name}</h4>
-                        <p className="text-sm text-gray-400">
-                          {member.positions.join(', ')}
-                        </p>
+                        <h5 className="text-white font-medium mb-1">AI Recommended Anime {item}</h5>
+                        <p className="text-gray-400 text-sm mb-2">Why recommended: Similar themes and genres</p>
+                        <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                          Add to List
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-lg">No staff data available</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'related' && (
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Related Anime</h3>
+            
+            {/* Sequel/Prequel Chain */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Series Timeline</h4>
+              <div className="flex items-center justify-center space-x-4 overflow-x-auto">
+                <div className="text-center flex-shrink-0">
+                  <div className="w-20 h-28 bg-gray-800 rounded mb-2 flex items-center justify-center">
+                    <Film className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-xs text-gray-400">Prequel</p>
+                </div>
+                <ArrowLeft className="w-4 h-4 text-gray-400" />
+                <div className="text-center flex-shrink-0">
+                  <div className="w-20 h-28 bg-red-600 rounded mb-2 flex items-center justify-center">
+                    <Film className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-xs text-red-400 font-medium">Current</p>
+                </div>
+                <ArrowLeft className="w-4 h-4 text-gray-400" />
+                <div className="text-center flex-shrink-0">
+                  <div className="w-20 h-28 bg-gray-800 rounded mb-2 flex items-center justify-center">
+                    <Film className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-xs text-gray-400">Sequel</p>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Relations Categories */}
+            <div className="space-y-6">
+              {['Sequel', 'Prequel', 'Side Story', 'Spin-off', 'Alternative Version'].map((relation, index) => (
+                <div key={relation} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+                  <h5 className="text-white font-medium mb-4">{relation}</h5>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[1, 2].map((item) => (
+                      <div key={item} className="text-center">
+                        <div className="aspect-[3/4] bg-gray-800 rounded-lg mb-2 flex items-center justify-center">
+                          <Film className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-300 mb-1">{relation} {item}</p>
+                        <span className="inline-block px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded mb-2">
+                          {relation}
+                        </span>
+                        <button className="w-full py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors">
+                          Add to List
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'media' && (
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">Videos & Media</h3>
+            
+            {/* Promotional Videos */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Promotional Videos</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2].map((item) => (
+                  <div key={item} className="bg-gray-900 rounded-lg overflow-hidden">
+                    <div className="aspect-video bg-gray-800 flex items-center justify-center">
+                      <Play className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <div className="p-4">
+                      <h5 className="text-white font-medium mb-1">Official Trailer {item}</h5>
+                      <p className="text-gray-400 text-sm">Official promotional video</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Opening/Ending Themes */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Opening & Ending Themes</h4>
+              <div className="space-y-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                    <div>
+                      <h5 className="text-white font-medium">Opening {item}</h5>
+                      <p className="text-gray-400 text-sm">Artist Name - Song Title</p>
+                      <p className="text-gray-500 text-xs">Episodes 1-12</p>
+                    </div>
+                    <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors">
+                      Add to Playlist
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Screenshots Gallery */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Screenshots</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                  <div key={item} className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-700 transition-colors">
+                    <Eye className="w-6 h-6 text-gray-400" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'news' && (
+          <div className="space-y-8">
+            <h3 className="text-2xl font-bold text-white">News & Updates</h3>
+            
+            {/* Latest News */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Latest News</h4>
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <div key={item} className="border-b border-white/10 pb-4 last:border-b-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h5 className="text-white font-medium mb-2 hover:text-red-400 cursor-pointer">
+                          Latest News Article {item}
+                        </h5>
+                        <p className="text-gray-400 text-sm mb-2">
+                          Brief excerpt of the news article content goes here...
+                        </p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <span>2 days ago</span>
+                          <span>•</span>
+                          <span>Anime News Network</span>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-gray-400 ml-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Forum Discussions */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Forum Discussions</h4>
+              <div className="space-y-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                    <div>
+                      <h5 className="text-white font-medium mb-1">Discussion Topic {item}</h5>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span>127 posts</span>
+                        <span>•</span>
+                        <span>Last activity: 1 hour ago</span>
+                      </div>
+                    </div>
+                    <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors">
+                      Join Discussion
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -926,6 +1474,117 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
+            {/* Viewing Statistics */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Viewing Statistics</h4>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">
+                    {anime.statistics?.watching?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-gray-400">Watching</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-400">
+                    {anime.statistics?.completed?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-gray-400">Completed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">
+                    {anime.statistics?.on_hold?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-gray-400">On Hold</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-400">
+                    {anime.statistics?.dropped?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-gray-400">Dropped</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">
+                    {anime.statistics?.plan_to_watch?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm text-gray-400">Plan to Watch</div>
+                </div>
+              </div>
+              
+              {/* Status Distribution Bar Chart */}
+              <div className="space-y-2">
+                {[
+                  { label: 'Watching', value: anime.statistics?.watching || 0, color: 'bg-green-500', total: anime.statistics?.total || 1 },
+                  { label: 'Completed', value: anime.statistics?.completed || 0, color: 'bg-red-500', total: anime.statistics?.total || 1 },
+                  { label: 'On Hold', value: anime.statistics?.on_hold || 0, color: 'bg-yellow-500', total: anime.statistics?.total || 1 },
+                  { label: 'Dropped', value: anime.statistics?.dropped || 0, color: 'bg-gray-500', total: anime.statistics?.total || 1 },
+                  { label: 'Plan to Watch', value: anime.statistics?.plan_to_watch || 0, color: 'bg-blue-500', total: anime.statistics?.total || 1 }
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center space-x-4">
+                    <span className="w-20 text-sm text-gray-400">{item.label}</span>
+                    <div className="flex-1 bg-gray-700 rounded-full h-3">
+                      <div 
+                        className={`${item.color} h-3 rounded-full transition-all duration-300`}
+                        style={{ width: `${(item.value / item.total) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-16 text-sm text-gray-400 text-right">
+                      {Math.round((item.value / item.total) * 100)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Score Statistics */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Score Statistics</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {anime.score || 'N/A'}
+                  </div>
+                  <div className="text-gray-400">Mean Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {anime.scored_by?.toLocaleString() || 'N/A'}
+                  </div>
+                  <div className="text-gray-400">Users Scored</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {userRating || 'Not Rated'}
+                  </div>
+                  <div className="text-gray-400">Your Score</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ranking */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              <h4 className="text-xl font-semibold text-white mb-6">Ranking</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    #{anime.rank || 'N/A'}
+                  </div>
+                  <div className="text-gray-400">Overall Rank</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    #{anime.popularity || 'N/A'}
+                  </div>
+                  <div className="text-gray-400">Popularity Rank</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    #{anime.favorites || 'N/A'}
+                  </div>
+                  <div className="text-gray-400">Favorites Rank</div>
+                </div>
+              </div>
+            </div>
+
             {/* General Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 text-center">
@@ -942,14 +1601,129 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
                 <div className="text-3xl font-bold text-white mb-2">
-                  #{anime.rank || 'N/A'}
+                  {anime.statistics?.total?.toLocaleString() || 'N/A'}
                 </div>
-                <div className="text-gray-400">Ranked</div>
+                <div className="text-gray-400">Total Users</div>
               </div>
             </div>
           </div>
         )}
       </main>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Share Anime</h3>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => handleShare('copy')}
+                className="w-full flex items-center space-x-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Copy className="w-5 h-5 text-gray-400" />
+                <span className="text-white">Copy Link</span>
+              </button>
+              <button
+                onClick={() => handleShare('twitter')}
+                className="w-full flex items-center space-x-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Twitter className="w-5 h-5 text-blue-400" />
+                <span className="text-white">Share on Twitter</span>
+              </button>
+              <button
+                onClick={() => handleShare('facebook')}
+                className="w-full flex items-center space-x-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Facebook className="w-5 h-5 text-blue-600" />
+                <span className="text-white">Share on Facebook</span>
+              </button>
+              <button
+                onClick={() => handleShare('discord')}
+                className="w-full flex items-center space-x-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <MessageCircle className="w-5 h-5 text-indigo-400" />
+                <span className="text-white">Share on Discord</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Report Issue</h3>
+              <button 
+                onClick={() => setShowReportModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-gray-300 mb-4">
+              Help us improve by reporting incorrect information or issues with this anime page.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleReport}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors"
+              >
+                Report Issue
+              </button>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="w-full bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Suggestion Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Suggest Edit</h3>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-gray-300 mb-4">
+              Found incorrect information? Help us keep this page accurate by suggesting edits.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleEditSuggestion}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors"
+              >
+                Suggest Edit
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="w-full bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

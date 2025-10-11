@@ -263,7 +263,21 @@ export default function SearchPage() {
       
       if (!response.ok) {
         if (response.status === 429) {
-          throw new Error('Too many requests. Please wait a moment and try again.');
+          // Wait 1 second and retry once
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const retryResponse = await fetch(`https://api.jikan.moe/v4/anime?${params.toString()}`);
+          if (!retryResponse.ok) {
+            throw new Error('Too many requests. Please wait a moment and try again.');
+          }
+          const retryData: SearchResult = await retryResponse.json();
+          if (page === 1) {
+            setSearchResults(retryData.data);
+          } else {
+            setSearchResults(prev => [...prev, ...retryData.data]);
+          }
+          setTotalPages(retryData.pagination.last_visible_page);
+          setTotalResults(retryData.pagination.items.total);
+          return;
         }
         throw new Error('Failed to fetch search results');
       }
@@ -280,11 +294,14 @@ export default function SearchPage() {
       setTotalResults(data.pagination.items.total);
 
       // Save to search history
-      if (!searchHistory.includes(query)) {
-        const newHistory = [query, ...searchHistory].slice(0, 10);
-        setSearchHistory(newHistory);
-        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-      }
+      setSearchHistory(prev => {
+        if (!prev.includes(query)) {
+          const newHistory = [query, ...prev].slice(0, 10);
+          localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+          return newHistory;
+        }
+        return prev;
+      });
 
     } catch (error) {
       console.error('Search error:', error);
@@ -292,7 +309,7 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchHistory]);
+  }, []);
 
   const handleSearch = (query: string) => {
     if (!query.trim()) return;
