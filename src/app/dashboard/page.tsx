@@ -384,23 +384,25 @@ export default function DashboardPage() {
             ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
                 {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
-                  <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group block">
-                    <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                      <img
-                        src={anime.images.jpg.large_image_url}
-                        alt={anime.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                    <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-red-400 transition-colors">
-                      {anime.title_english || anime.title}
-                    </h3>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">{anime.genres[0]?.name || 'Anime'}</span>
-                      {anime.score && (
-                        <span className="text-green-400 font-semibold">★ {anime.score}</span>
-                      )}
-                    </div>
+                  <div key={anime.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
+                    <Link href={`/anime/${anime.mal_id}`} className="block">
+                      <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
+                        <img
+                          src={anime.images.jpg.large_image_url}
+                          alt={anime.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-red-400 transition-colors">
+                        {anime.title_english || anime.title}
+                      </h3>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">{anime.genres[0]?.name || 'Anime'}</span>
+                        {anime.score && (
+                          <span className="text-green-400 font-semibold">★ {anime.score}</span>
+                        )}
+                      </div>
+                    </Link>
                     <div className="flex space-x-2 mt-3">
                       <button 
                         onClick={(e) => {
@@ -422,7 +424,7 @@ export default function DashboardPage() {
                         <span>Review</span>
                       </Link>
                     </div>
-                  </Link>
+                  </div>
                 )) : (
                   <div className="col-span-full text-center py-20">
                     <p className="text-gray-400 text-lg">No anime data available</p>

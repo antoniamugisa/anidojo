@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -197,7 +197,8 @@ interface Episode {
   forum_url: string;
 }
 
-export default function AnimeDetailPage({ params }: { params: { id: string } }) {
+export default function AnimeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: animeId } = use(params);
   const [anime, setAnime] = useState<AnimeDetails | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,7 +226,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         setError(null);
 
         // Fetch anime details
-        const animeResponse = await fetch(`https://api.jikan.moe/v4/anime/${params.id}/full`);
+        const animeResponse = await fetch(`https://api.jikan.moe/v4/anime/${animeId}/full`);
         if (!animeResponse.ok) {
           throw new Error('Anime not found');
         }
@@ -233,7 +234,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
         setAnime(animeData.data);
 
         // Fetch episodes
-        const episodesResponse = await fetch(`https://api.jikan.moe/v4/anime/${params.id}/episodes`);
+        const episodesResponse = await fetch(`https://api.jikan.moe/v4/anime/${animeId}/episodes`);
         if (episodesResponse.ok) {
           const episodesData = await episodesResponse.json();
           setEpisodes(episodesData.data || []);
@@ -247,10 +248,10 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
       }
     };
 
-    if (params.id) {
+    if (animeId) {
       fetchAnimeDetails();
     }
-  }, [params.id]);
+  }, [animeId]);
 
   const handleAddToList = (listType: string) => {
     setUserList(listType);
@@ -455,7 +456,7 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
                 </div>
                 
                 <Link
-                  href={`/anime/${animeDetails.mal_id}/review`}
+                  href={`/anime/${anime.mal_id}/review`}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium transition-colors text-base inline-flex items-center justify-center"
                 >
                   Write Review
