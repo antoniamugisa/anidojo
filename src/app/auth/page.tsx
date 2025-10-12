@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import AuthNavbar from '@/components/AuthNavbar';
 
 // Types for Jikan API responses
@@ -49,7 +50,6 @@ interface JikanResponse {
 }
 
 export default function AuthPage() {
-  const [loading, setLoading] = useState(false);
   const [moodAnime, setMoodAnime] = useState<Anime[]>([]);
   const [upcomingAnime, setUpcomingAnime] = useState<Anime[]>([]);
   const [reviewAnime, setReviewAnime] = useState<Anime[]>([]);
@@ -101,9 +101,11 @@ export default function AuthPage() {
         <div className="w-full max-w-md text-center">
           {/* Logo */}
           <div className="mb-8">
-            <img 
+            <Image 
               src="/images/anidojo-logo.png" 
               alt="AniDojo" 
+              width={256}
+              height={256}
               className="h-64 w-auto mx-auto"
             />
           </div>
@@ -155,7 +157,7 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {moodAnime && moodAnime.length > 0 ? moodAnime.map((anime, index) => (
+              {moodAnime && moodAnime.length > 0 ? moodAnime.map((anime) => (
                 <div
                   key={anime.mal_id}
                   className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-red-500/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
@@ -163,9 +165,11 @@ export default function AuthPage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-green-500/20 opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
                   <div className="relative p-6">
                     <div className="aspect-[3/4] mb-4 rounded-lg overflow-hidden">
-                      <img
+                      <Image
                         src={anime.images.jpg.large_image_url}
                         alt={anime.title}
+                        width={300}
+                        height={400}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     </div>
@@ -293,15 +297,17 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.map((anime, index) => (
+              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.map((anime) => (
                 <div
                   key={anime.mal_id}
                   className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:border-red-500/50 hover:scale-105 transition-all duration-300 cursor-pointer"
                 >
                   <div className="w-full h-48 rounded-lg mb-6 overflow-hidden">
-                    <img
+                    <Image
                       src={anime.images.jpg.large_image_url}
                       alt={anime.title}
+                      width={300}
+                      height={400}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
@@ -356,16 +362,18 @@ export default function AuthPage() {
             </div>
           ) : (
             <div className="space-y-10 mb-16">
-              {reviewAnime && reviewAnime.length > 0 ? reviewAnime.map((anime, index) => (
+              {reviewAnime && reviewAnime.length > 0 ? reviewAnime.map((anime) => (
                 <div
                   key={anime.mal_id}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:border-green-500/50 transition-all duration-300"
                 >
                   <div className="flex items-start space-x-6">
                     <div className="w-24 h-32 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
+                      <Image
                         src={anime.images.jpg.large_image_url}
                         alt={anime.title}
+                        width={96}
+                        height={128}
                         className="w-full h-full object-cover"
                       />
                     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, Loader2, Clock, X, Play } from 'lucide-react';
 
 interface SearchSuggestion {
@@ -254,9 +255,11 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
                   }`}
                 >
                   <div className="w-12 h-16 rounded overflow-hidden bg-gray-800 flex-shrink-0">
-                    <img
+                    <Image
                       src={anime.images.jpg.small_image_url}
                       alt={anime.title}
+                      width={48}
+                      height={64}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';

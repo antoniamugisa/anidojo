@@ -3,48 +3,28 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
-  ChevronDown, 
   Heart, 
   Share2, 
   Star, 
   Play, 
-  Calendar, 
-  Clock, 
   User, 
   Film,
   MessageCircle,
-  ThumbsUp,
-  MessageSquare,
-  MoreHorizontal,
   Edit3,
-  Trash2,
-  Download,
   Eye,
-  EyeOff,
-  Settings,
-  Home,
   ArrowLeft,
   ExternalLink,
   Flag,
   Bell,
   Plus,
   Minus,
-  Check,
   X,
   Copy,
   Twitter,
   Facebook,
-  Link as LinkIcon,
-  Monitor,
-  Smartphone,
-  Globe,
-  BookOpen,
-  Users,
-  TrendingUp,
-  Award,
-  Zap,
-  AlertTriangle
+  Monitor
 } from 'lucide-react';
 
 // Types for Jikan API responses
@@ -233,7 +213,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
   const [showShareModal, setShowShareModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [streamingServices, setStreamingServices] = useState<Array<{name: string, url: string, available: boolean}>>([]);
+  const [streamingServices] = useState<Array<{name: string, url: string, available: boolean}>>([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [userListStatus, setUserListStatus] = useState<string>('');
   const router = useRouter();
@@ -440,9 +420,11 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
           <div className="flex items-start space-x-12 max-w-7xl mx-auto w-full">
             {/* Anime Poster */}
             <div className="flex-shrink-0">
-              <img
+              <Image
                 src={anime.images.jpg.large_image_url}
                 alt={anime.title}
+                width={288}
+                height={384}
                 className="w-72 h-96 object-cover rounded-lg shadow-2xl"
               />
             </div>
@@ -864,8 +846,8 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
                 <h3 className="text-2xl font-bold text-white mb-6">Related Anime</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {anime.relations.slice(0, 8).map((relation, index) => (
-                    <div key={index} className="text-center">
+                  {anime.relations.slice(0, 8).map((relation) => (
+                    <div key={relation.entry[0].mal_id} className="text-center">
                       <div className="aspect-[3/4] bg-gray-800 rounded-lg mb-2 flex items-center justify-center">
                         <Film className="w-8 h-8 text-gray-400" />
                       </div>
@@ -901,7 +883,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Episodes List */}
             <div className="space-y-3">
-              {episodes.length > 0 ? episodes.map((episode, index) => (
+              {episodes.length > 0 ? episodes.map((episode) => (
                 <div
                   key={episode.mal_id}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-red-500/50 transition-all duration-300"
@@ -981,8 +963,8 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
                   helpful: 189,
                   notHelpful: 8
                 }
-              ].map((review, index) => (
-                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              ].map((review) => (
+                <div key={review.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-green-400 font-bold text-lg">{review.avatar}</span>
@@ -1033,12 +1015,14 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
             <h3 className="text-2xl font-bold text-white">Characters</h3>
             {anime.characters && anime.characters.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {anime.characters.slice(0, 12).map((character, index) => (
+                {anime.characters.slice(0, 12).map((character) => (
                   <div key={character.character.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
                     <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
-                      <img
+                      <Image
                         src={character.character.images.jpg.image_url}
                         alt={character.character.name}
+                        width={200}
+                        height={300}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -1078,13 +1062,15 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               <h4 className="text-xl font-semibold text-white mb-6">Production Staff</h4>
               {anime.staff && anime.staff.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {anime.staff.slice(0, 20).map((member, index) => (
+                  {anime.staff.slice(0, 20).map((member) => (
                     <div key={member.person.mal_id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
                       <div className="flex items-center space-x-4">
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center flex-shrink-0">
-                          <img
+                          <Image
                             src={member.person.images.jpg.image_url}
                             alt={member.person.name}
+                            width={64}
+                            height={64}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
@@ -1122,7 +1108,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
                 <h4 className="text-xl font-semibold text-white mb-6">Studio Information</h4>
                 <div className="space-y-6">
-                  {anime.studios.map((studio, index) => (
+                  {anime.studios.map((studio) => (
                     <div key={studio.mal_id} className="bg-white/5 rounded-lg p-6">
                       <div className="flex items-start space-x-4">
                         <div className="w-20 h-20 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -1273,7 +1259,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Relations Categories */}
             <div className="space-y-6">
-              {['Sequel', 'Prequel', 'Side Story', 'Spin-off', 'Alternative Version'].map((relation, index) => (
+              {['Sequel', 'Prequel', 'Side Story', 'Spin-off', 'Alternative Version'].map((relation) => (
                 <div key={relation} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
                   <h5 className="text-white font-medium mb-4">{relation}</h5>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

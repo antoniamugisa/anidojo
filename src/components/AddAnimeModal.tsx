@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Search, Plus, Loader2, Play, CheckCircle, Pause, XCircle, Clock } from 'lucide-react';
+import Image from 'next/image';
 
 interface Anime {
   mal_id: number;
@@ -196,9 +197,11 @@ export default function AddAnimeModal({ isOpen, onClose, onAddAnime }: AddAnimeM
                     className="w-full flex items-center space-x-3 p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-left"
                   >
                     <div className="w-12 h-16 rounded overflow-hidden bg-gray-800 flex-shrink-0">
-                      <img
+                      <Image
                         src={anime.images.jpg.large_image_url}
                         alt={anime.title}
+                        width={48}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -230,9 +233,11 @@ export default function AddAnimeModal({ isOpen, onClose, onAddAnime }: AddAnimeM
             {/* Selected Anime Info */}
             <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
               <div className="w-16 h-20 rounded overflow-hidden bg-gray-800 flex-shrink-0">
-                <img
+                <Image
                   src={selectedAnime.images.jpg.large_image_url}
                   alt={selectedAnime.title}
+                  width={64}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               </div>

@@ -5,35 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import GlobalSearch from '@/components/GlobalSearch';
 import { 
-  Search, 
   Bell, 
   ChevronDown, 
   Menu, 
-  Home, 
   Sparkles,
-  Compass, 
-  List, 
-  Calendar, 
   Star, 
   User, 
-  Settings, 
   LogOut,
   Play,
-  Heart,
-  Share2,
   Plus,
-  Eye,
-  Clock,
-  TrendingUp,
-  Calendar as CalendarIcon,
-  MessageCircle,
-  ThumbsUp,
   BookOpen,
-  Zap,
-  Cloud,
-  Compass as CompassIcon,
   Wand2,
-  Target,
   Award
 } from 'lucide-react';
 
@@ -84,13 +66,6 @@ interface JikanResponse {
   };
 }
 
-// Mock user data for continue watching
-const mockContinueWatching = [
-  { anime_id: 1, title: 'Attack on Titan', episode: 5, total_episodes: 12, progress: 42 },
-  { anime_id: 2, title: 'Demon Slayer', episode: 8, total_episodes: 26, progress: 31 },
-  { anime_id: 3, title: 'One Piece', episode: 1050, total_episodes: 1100, progress: 95 },
-  { anime_id: 4, title: 'Jujutsu Kaisen', episode: 2, total_episodes: 24, progress: 8 },
-];
 
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

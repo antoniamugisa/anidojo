@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (email: string, _password: string): Promise<boolean> => {
     try {
       setLoading(true);
       // Simulate API call
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (username: string, email: string, password: string): Promise<boolean> => {
+  const signUp = async (username: string, email: string, _password: string): Promise<boolean> => {
     try {
       setLoading(true);
       // Simulate API call

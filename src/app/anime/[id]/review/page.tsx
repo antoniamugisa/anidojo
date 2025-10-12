@@ -3,31 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Star, 
   Save, 
   Eye, 
   X, 
   AlertTriangle, 
-  CheckCircle, 
   Clock, 
   Loader2,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  Quote,
-  Link as LinkIcon,
-  Type,
-  Trash2,
-  Edit3,
   Send,
   ArrowLeft,
-  AlertCircle,
-  Check,
-  Minus,
-  Plus
+  AlertCircle
 } from 'lucide-react';
 
 // Types
@@ -412,9 +399,11 @@ export default function WriteReviewPage() {
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-800">
-                <img
+                <Image
                   src={anime.images.jpg.large_image_url}
                   alt={anime.title}
+                  width={64}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               </div>

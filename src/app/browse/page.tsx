@@ -2,6 +2,7 @@
 
 import { useTopAnime } from '@/hooks/useAnime';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function BrowsePage() {
   const [page, setPage] = useState(1);
@@ -37,9 +38,11 @@ export default function BrowsePage() {
           <div key={a.id} className="group overflow-hidden rounded-lg bg-white border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
             <div className={`aspect-[2/3] w-full ${getAnimeColor(index)} flex items-center justify-center relative`}>
               {a.coverArt ? (
-                <img 
+                <Image 
                   src={a.coverArt} 
                   alt={a.title}
+                  width={200}
+                  height={300}
                   className="w-full h-full object-cover"
                 />
               ) : (

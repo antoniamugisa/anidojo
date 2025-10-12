@@ -4,12 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  Zap, 
-  Cloud, 
-  Brain, 
-  Clock, 
-  Heart, 
-  Compass, 
   Filter, 
   ChevronDown, 
   ChevronUp, 
@@ -17,21 +11,11 @@ import {
   Play, 
   Plus, 
   Star, 
-  Eye, 
   BookOpen, 
-  Calendar, 
   BarChart3, 
-  Settings, 
-  History, 
-  Trash2, 
-  Save, 
   Loader2,
   Sparkles,
-  Target,
-  TrendingUp,
   Award,
-  CheckCircle,
-  XCircle,
   AlertCircle
 } from 'lucide-react';
 
