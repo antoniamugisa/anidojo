@@ -16,7 +16,9 @@ import {
   Loader2,
   Sparkles,
   Award,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Cloud
 } from 'lucide-react';
 
 // Types
