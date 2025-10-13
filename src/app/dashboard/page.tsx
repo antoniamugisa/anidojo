@@ -16,7 +16,15 @@ import {
   Plus,
   BookOpen,
   Wand2,
-  Award
+  Award,
+  Home,
+  Search,
+  List,
+  Calendar,
+  Settings,
+  Zap,
+  Cloud,
+  Compass
 } from 'lucide-react';
 
 // Types for Jikan API responses
@@ -310,7 +318,7 @@ export default function DashboardPage() {
               {[
                 { mood: 'excited', name: 'Excited', icon: Zap, color: 'from-red-500 to-orange-500' },
                 { mood: 'relaxed', name: 'Relaxed', icon: Cloud, color: 'from-blue-500 to-cyan-500' },
-                { mood: 'adventurous', name: 'Adventurous', icon: CompassIcon, color: 'from-green-500 to-emerald-500' }
+                { mood: 'adventurous', name: 'Adventurous', icon: Compass, color: 'from-green-500 to-emerald-500' }
               ].map((mood) => {
                 const IconComponent = mood.icon;
                 return (
