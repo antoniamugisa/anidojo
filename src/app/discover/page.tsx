@@ -18,7 +18,14 @@ import {
   Award,
   AlertCircle,
   Zap,
-  Cloud
+  Cloud,
+  Brain,
+  Clock,
+  Heart,
+  Compass,
+  Eye,
+  Save,
+  Trash2
 } from 'lucide-react';
 
 // Types
@@ -271,13 +278,13 @@ export default function DiscoverPage() {
         }
 
         // Calculate match percentages and sort
-        const scoredAnime = filteredAnime.map(anime => ({
+  const scoredAnime = filteredAnime.map((anime: Anime) => ({
           ...anime,
           matchPercentage: calculateMatchPercentage(anime, selectedMoods, filters)
         }));
 
         // Sort by match percentage and score
-        scoredAnime.sort((a, b) => {
+        scoredAnime.sort((a: { matchPercentage: number; score?: number }, b: { matchPercentage: number; score?: number }) => {
           if (a.matchPercentage !== b.matchPercentage) {
             return b.matchPercentage - a.matchPercentage;
           }
@@ -638,7 +645,10 @@ export default function DiscoverPage() {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                          const next = e.currentTarget.nextElementSibling;
+                          if (next && next instanceof HTMLElement) {
+                            next.style.display = 'flex';
+                          }
                         }}
                       />
                       <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
@@ -715,7 +725,10 @@ export default function DiscoverPage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling.style.display = 'flex';
+                            const next = e.currentTarget.nextElementSibling;
+                            if (next && next instanceof HTMLElement) {
+                              next.style.display = 'flex';
+                            }
                           }}
                         />
                         <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
