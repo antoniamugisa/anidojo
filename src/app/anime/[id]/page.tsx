@@ -884,7 +884,7 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* Episodes List */}
             <div className="space-y-3">
-              {episodes.length > 0 ? episodes.map((episode) => (
+              {episodes.length > 0 ? episodes.map((episode, index) => (
                 <div
                   key={episode.mal_id}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-red-500/50 transition-all duration-300"
@@ -964,8 +964,8 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
                   helpful: 189,
                   notHelpful: 8
                 }
-              ].map((review) => (
-                <div key={review.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+              ].map((review, idx) => (
+                <div key={idx} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-green-400 font-bold text-lg">{review.avatar}</span>
@@ -1027,7 +1027,10 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                          const next = e.currentTarget.nextElementSibling;
+                          if (next && next instanceof HTMLElement) {
+                            next.style.display = 'flex';
+                          }
                         }}
                       />
                       <div className="w-full h-full flex items-center justify-center text-4xl" style={{ display: 'none' }}>
@@ -1075,7 +1078,10 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                              const next = e.currentTarget.nextElementSibling;
+                              if (next && next instanceof HTMLElement) {
+                                next.style.display = 'flex';
+                              }
                             }}
                           />
                           <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: 'none' }}>
