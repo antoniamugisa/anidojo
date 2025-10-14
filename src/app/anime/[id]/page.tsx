@@ -24,7 +24,8 @@ import {
   Copy,
   Twitter,
   Facebook,
-  Monitor
+  Monitor,
+  ChevronDown
 } from 'lucide-react';
 
 // Types for Jikan API responses
