@@ -759,7 +759,10 @@ export default function SearchPage() {
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                              const next = e.currentTarget.nextElementSibling;
+                              if (next && next instanceof HTMLElement) {
+                                next.style.display = 'flex';
+                              }
                             }}
                           />
                           <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
@@ -816,7 +819,10 @@ export default function SearchPage() {
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                                const next = e.currentTarget.nextElementSibling;
+                                if (next && next instanceof HTMLElement) {
+                                  next.style.display = 'flex';
+                                }
                               }}
                             />
                             <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
