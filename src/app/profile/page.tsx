@@ -315,6 +315,12 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Breadcrumb Navigation */}
+      <nav className="mb-6 flex items-center text-gray-400 text-sm gap-2 px-6 pt-6">
+        <Link href="/dashboard" className="hover:text-white">Home</Link>
+        <span className="mx-1">›</span>
+        <span className="text-white">Profile</span>
+      </nav>
       {/* Profile Header */}
       <section className="relative">
         {/* Cover Banner */}
