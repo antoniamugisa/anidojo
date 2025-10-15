@@ -382,6 +382,12 @@ export default function MyListsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Breadcrumb Navigation */}
+      <nav className="mb-6 flex items-center text-gray-400 text-sm gap-2 px-6 pt-6">
+        <Link href="/dashboard" className="hover:text-white">Home</Link>
+        <span className="mx-1">›</span>
+        <span className="text-white">My Lists</span>
+      </nav>
       {/* Header */}
       <div className="bg-gradient-to-r from-red-900/20 via-black to-green-900/20 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-8">
