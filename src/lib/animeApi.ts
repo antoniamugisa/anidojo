@@ -1,6 +1,116 @@
 // Anime API service using Jikan (MyAnimeList) API
 // Documentation: https://jikan.moe/
 
+// API Rate Limiting Manager
+class APIRateLimiter {
+  private queue: Array<{
+    url: string;
+    resolve: (value: any) => void;
+    reject: (reason?: any) => void;
+  }> = [];
+  private processing = false;
+  private lastCallTime = 0;
+  private minInterval = 350; // 350ms between calls = ~3 per second
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cacheExpiry = 5 * 60 * 1000; // 5 minutes
+
+  async call<T>(url: string, useCache = true): Promise<T> {
+    // Check cache first
+    if (useCache && this.cache.has(url)) {
+      const cached = this.cache.get(url)!;
+      const age = Date.now() - cached.timestamp;
+      if (age < this.cacheExpiry) {
+        console.log(`[API Cache] Using cached data for: ${url}`);
+        return cached.data as T;
+      } else {
+        this.cache.delete(url);
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+      this.queue.push({ url, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.processing || this.queue.length === 0) return;
+
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const now = Date.now();
+      const timeSinceLastCall = now - this.lastCallTime;
+
+      // Wait if we need to respect rate limit
+      if (timeSinceLastCall < this.minInterval) {
+        await new Promise(resolve =>
+          setTimeout(resolve, this.minInterval - timeSinceLastCall)
+        );
+      }
+
+      const { url, resolve, reject } = this.queue.shift()!;
+      this.lastCallTime = Date.now();
+
+      try {
+        const response = await this.fetchWithRetry(url);
+        const data = await response.json();
+        
+        // Cache the result
+        this.cache.set(url, { data, timestamp: Date.now() });
+        
+        resolve(data);
+      } catch (error) {
+        reject(error);
+      }
+    }
+
+    this.processing = false;
+  }
+
+  private async fetchWithRetry(
+    url: string,
+    retries = 3,
+    backoff = 1000
+  ): Promise<Response> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url);
+
+        // Handle rate limiting
+        if (response.status === 429) {
+          const waitTime = backoff * Math.pow(2, i);
+          console.warn(
+            `[API Rate Limited] Waiting ${waitTime}ms before retry ${i + 1}/${retries}`
+          );
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
+        return response;
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        const waitTime = backoff * Math.pow(2, i);
+        console.warn(`[API Error] Retrying in ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+
+    throw new Error('Max retries exceeded');
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+}
+
+// Global rate limiter instance
+const rateLimiter = new APIRateLimiter();
+
 export interface JikanAnime {
   mal_id: number;
   title: string;
@@ -129,49 +239,36 @@ export function convertJikanToAnime(jikanAnime: JikanAnime): import('./mockData'
   };
 }
 
-// API functions
+// API functions with rate limiting
 export async function searchAnime(query: string, page: number = 1, limit: number = 20): Promise<JikanSearchResponse> {
-  const response = await fetch(
-    `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
-  );
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
-  
-  return response.json();
+  const url = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`;
+  return rateLimiter.call<JikanSearchResponse>(url);
 }
 
-export async function getTopAnime(page: number = 1, limit: number = 20): Promise<JikanSearchResponse> {
-  const response = await fetch(
-    `https://api.jikan.moe/v4/top/anime?page=${page}&limit=${limit}`
-  );
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
-  
-  return response.json();
+export async function getTopAnime(page: number = 1, limit: number = 20, filter?: string): Promise<JikanSearchResponse> {
+  const filterParam = filter ? `&filter=${filter}` : '';
+  const url = `https://api.jikan.moe/v4/top/anime?page=${page}&limit=${limit}${filterParam}`;
+  return rateLimiter.call<JikanSearchResponse>(url);
 }
 
 export async function getAnimeById(id: number): Promise<{ data: JikanAnime }> {
-  const response = await fetch(`https://api.jikan.moe/v4/anime/${id}`);
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
-  
-  return response.json();
+  const url = `https://api.jikan.moe/v4/anime/${id}`;
+  return rateLimiter.call<{ data: JikanAnime }>(url);
 }
 
-export async function getSeasonalAnime(year: number, season: 'winter' | 'spring' | 'summer' | 'fall'): Promise<JikanSearchResponse> {
-  const response = await fetch(
-    `https://api.jikan.moe/v4/seasons/${year}/${season}`
-  );
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
-  }
-  
-  return response.json();
+export async function getSeasonalAnime(year: number, season: 'winter' | 'spring' | 'summer' | 'fall', limit?: number): Promise<JikanSearchResponse> {
+  const limitParam = limit ? `?limit=${limit}` : '';
+  const url = `https://api.jikan.moe/v4/seasons/${year}/${season}${limitParam}`;
+  return rateLimiter.call<JikanSearchResponse>(url);
+}
+
+export async function getCurrentSeasonAnime(limit?: number): Promise<JikanSearchResponse> {
+  const limitParam = limit ? `?limit=${limit}` : '';
+  const url = `https://api.jikan.moe/v4/seasons/now${limitParam}`;
+  return rateLimiter.call<JikanSearchResponse>(url);
+}
+
+// Clear API cache (useful for testing or forcing refresh)
+export function clearAPICache() {
+  rateLimiter.clearCache();
 }
