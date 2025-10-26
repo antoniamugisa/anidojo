@@ -461,7 +461,7 @@ export default function WriteReviewPage() {
                 <StarRating
                   rating={formData.rating}
                   onRatingChange={(rating) => handleInputChange('rating', rating)}
-                  maxRating={10}
+                  maxRating={5}
                   size="lg"
                 />
                 {errors.rating && (
@@ -486,7 +486,7 @@ export default function WriteReviewPage() {
                     <StarRating
                       rating={formData[key as keyof ReviewFormData] as number}
                       onRatingChange={(rating) => handleInputChange(key as keyof ReviewFormData, rating)}
-                      maxRating={10}
+                      maxRating={5}
                       size="md"
                     />
                   </div>
@@ -495,7 +495,7 @@ export default function WriteReviewPage() {
               {calculateAverageRating() > 0 && (
                 <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <p className="text-green-400 text-sm">
-                    Calculated average: {calculateAverageRating()}/10
+                    Calculated average: {calculateAverageRating()}/5
                     {formData.rating !== calculateAverageRating() && (
                       <button
                         onClick={() => handleInputChange('rating', calculateAverageRating())}
@@ -575,7 +575,7 @@ export default function WriteReviewPage() {
                     <StarRating
                       rating={formData.rating}
                       onRatingChange={() => {}}
-                      maxRating={10}
+                      maxRating={5}
                       size="sm"
                     />
                     <span className="text-gray-400 text-sm">by You</span>
