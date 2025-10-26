@@ -173,24 +173,59 @@ export default function WriteReviewPage() {
     loadData();
   }, [animeId]);
 
-  // Auto-save functionality - FIXED: Removed formData dependency to prevent infinite loop
-  useEffect(() => {
+  // saveDraft function with useCallback - FIXED: Memoized to prevent infinite loop
+  const saveDraft = useCallback(async () => {
     if (!hasUnsavedChanges.current) return;
+    
+    setSaving(true);
+    try {
+      const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+      const draftReview: Review = {
+        id: existingReview?.id || `review_${Date.now()}`,
+        animeId: parseInt(animeId),
+        userId: 'current_user', // In real app, get from auth context
+        ...formData,
+        status: 'draft',
+        createdAt: existingReview?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        helpfulVotes: existingReview?.helpfulVotes || 0
+      };
 
-    if (autoSaveRef.current) {
-      clearTimeout(autoSaveRef.current);
-    }
-
-    autoSaveRef.current = setTimeout(() => {
-      saveDraft();
-    }, 30000); // Auto-save every 30 seconds
-
-    return () => {
-      if (autoSaveRef.current) {
-        clearTimeout(autoSaveRef.current);
+      const existingIndex = reviews.findIndex((r: Review) => r.id === draftReview.id);
+      if (existingIndex >= 0) {
+        reviews[existingIndex] = draftReview;
+      } else {
+        reviews.push(draftReview);
       }
-    };
-  }, []); // Empty array - prevents infinite loop
+
+      localStorage.setItem('reviews', JSON.stringify(reviews));
+      setLastSaved(new Date());
+      hasUnsavedChanges.current = false;
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    } finally {
+      setSaving(false);
+    }
+  }, [formData, animeId, existingReview]);
+
+  // Auto-save functionality - TEMPORARILY DISABLED TO DEBUG INFINITE LOOP
+  // useEffect(() => {
+  //   if (!hasUnsavedChanges.current) return;
+
+  //   if (autoSaveRef.current) {
+  //     clearTimeout(autoSaveRef.current);
+  //   }
+
+  //   autoSaveRef.current = setTimeout(() => {
+  //     saveDraft();
+  //   }, 30000); // Auto-save every 30 seconds
+
+  //   return () => {
+  //     if (autoSaveRef.current) {
+  //       clearTimeout(autoSaveRef.current);
+  //     }
+  //   };
+  // }, [formData, saveDraft]); // Proper dependencies
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -226,38 +261,6 @@ export default function WriteReviewPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const saveDraft = async () => {
-    setSaving(true);
-    try {
-      const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      const draftReview: Review = {
-        id: existingReview?.id || `review_${Date.now()}`,
-        animeId: parseInt(animeId),
-        userId: 'current_user', // In real app, get from auth context
-        ...formData,
-        status: 'draft',
-        createdAt: existingReview?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        helpfulVotes: existingReview?.helpfulVotes || 0
-      };
-
-      const existingIndex = reviews.findIndex((r: Review) => r.id === draftReview.id);
-      if (existingIndex >= 0) {
-        reviews[existingIndex] = draftReview;
-      } else {
-        reviews.push(draftReview);
-      }
-
-      localStorage.setItem('reviews', JSON.stringify(reviews));
-      setLastSaved(new Date());
-      hasUnsavedChanges.current = false;
-    } catch (error) {
-      console.error('Error saving draft:', error);
-    } finally {
-      setSaving(false);
-    }
   };
 
   const publishReview = async () => {
@@ -436,7 +439,7 @@ export default function WriteReviewPage() {
               </button>
               <button
                 onClick={() => setShowPublishModal(true)}
-                disabled={!validateForm()}
+                disabled={formData.rating === 0 || !formData.title.trim() || formData.body.length < 100}
                 className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Send className="w-4 h-4" />
