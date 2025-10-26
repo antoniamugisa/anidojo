@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -95,7 +95,7 @@ export default function WriteReviewPage() {
   const router = useRouter();
   const params = useParams();
   const animeId = params.id as string;
-  const autoSaveRef = useRef<NodeJS.Timeout>();
+  const autoSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const hasUnsavedChanges = useRef(false);
 
   const [formData, setFormData] = useState<ReviewFormData>({
@@ -173,20 +173,24 @@ export default function WriteReviewPage() {
     loadData();
   }, [animeId]);
 
-  // Auto-save functionality
+  // Auto-save functionality - FIXED: Removed formData dependency to prevent infinite loop
   useEffect(() => {
-    if (hasUnsavedChanges.current) {
-      autoSaveRef.current = setTimeout(() => {
-        saveDraft();
-      }, 30000); // Auto-save every 30 seconds
+    if (!hasUnsavedChanges.current) return;
+
+    if (autoSaveRef.current) {
+      clearTimeout(autoSaveRef.current);
     }
+
+    autoSaveRef.current = setTimeout(() => {
+      saveDraft();
+    }, 30000); // Auto-save every 30 seconds
 
     return () => {
       if (autoSaveRef.current) {
         clearTimeout(autoSaveRef.current);
       }
     };
-  }, [formData]);
+  }, []); // Empty array - prevents infinite loop
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
