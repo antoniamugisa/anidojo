@@ -396,16 +396,16 @@ export default function WriteReviewPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-900/20 via-black to-green-900/20 border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <Link 
                 href={`/anime/${animeId}`}
                 className="text-gray-400 hover:text-white transition-colors"
               >
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </Link>
-              <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-800">
+              <div className="w-12 h-16 sm:w-16 sm:h-20 rounded-lg overflow-hidden bg-gray-800">
                 <Image
                   src={anime.images.jpg.large_image_url}
                   alt={anime.title}
@@ -415,16 +415,16 @@ export default function WriteReviewPage() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">
-                  {isEditing ? 'Edit Review' : 'Write Your Review'}
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
+                  {isEditing ? 'Edit Review' : 'Write Review'}
                 </h1>
-                <p className="text-gray-300">{anime.title_english || anime.title}</p>
+                <p className="text-sm sm:text-base text-gray-300 truncate max-w-[200px] sm:max-w-full">{anime.title_english || anime.title}</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 mt-2 sm:mt-0">
               {lastSaved && (
-                <div className="flex items-center space-x-2 text-green-400 text-sm">
+                <div className="hidden sm:flex items-center space-x-2 text-green-400 text-sm">
                   <Clock className="w-4 h-4" />
                   <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
                 </div>
@@ -432,7 +432,7 @@ export default function WriteReviewPage() {
               <button
                 onClick={saveDraft}
                 disabled={saving}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save Draft</span>
@@ -440,10 +440,10 @@ export default function WriteReviewPage() {
               <button
                 onClick={() => setShowPublishModal(true)}
                 disabled={formData.rating === 0 || !formData.title.trim() || formData.body.length < 100}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-3 sm:px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
               >
                 <Send className="w-4 h-4" />
-                <span>{isEditing ? 'Update Review' : 'Publish Review'}</span>
+                <span>{isEditing ? 'Update' : 'Publish'}</span>
               </button>
             </div>
           </div>
