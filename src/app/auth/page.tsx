@@ -97,7 +97,7 @@ export default function AuthPage() {
       <AuthNavbar />
       
       {/* Main Content - Centered */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 w-full overflow-hidden">
         <div className="w-full max-w-md text-center">
           {/* Logo */}
           <div className="mb-8">
@@ -156,7 +156,7 @@ export default function AuthPage() {
               <p className="text-red-400 text-lg">{apiError}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
               {moodAnime && moodAnime.length > 0 ? moodAnime.map((anime) => (
                 <div
                   key={anime.mal_id}
@@ -296,7 +296,7 @@ export default function AuthPage() {
               <p className="text-red-400 text-lg">{apiError}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.map((anime) => (
                 <div
                   key={anime.mal_id}
@@ -342,7 +342,7 @@ export default function AuthPage() {
 
       {/* Section 5 - Community Reviews */}
       <section className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900/20 to-slate-800 flex items-center justify-center px-6 py-20">
-        <div className="max-w-4xl w-full">
+        <div className="max-w-4xl w-full mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
               Community Reviews
@@ -433,8 +433,8 @@ export default function AuthPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 border-t border-white/10 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center">
+      <footer className="bg-slate-900 border-t border-white/10 py-8 w-full overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-gray-400">
             © 2024 AniDojo. All rights reserved. Discover your next favorite anime.
           </p>
