@@ -35,7 +35,7 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -201,7 +201,7 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
   };
 
   return (
-    <div ref={searchRef} className={`relative ${className}`}>
+    <div ref={searchRef} className={`relative w-full ${className}`}>
       <form onSubmit={handleSearchSubmit} className="relative">
         <input
           ref={inputRef}
@@ -211,7 +211,7 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
-          className="w-full px-4 py-2 pl-10 pr-10 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
+          className="w-full px-4 py-2 pl-10 pr-10 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200 text-sm sm:text-base"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
         {query && (

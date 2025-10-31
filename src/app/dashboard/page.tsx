@@ -139,7 +139,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white w-full overflow-x-hidden">
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center justify-between px-6 py-4">
@@ -218,8 +218,8 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-16">
-        <div className="p-6 space-y-8">
+      <main className="md:ml-64 pt-16 w-full overflow-x-hidden">
+        <div className="px-4 sm:px-6 py-6 space-y-8 w-full">
           {/* Call-to-Action Card for New Users */}
           <section className="bg-gradient-to-r from-red-500/20 to-green-500/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-8 text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
@@ -314,7 +314,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <p className="text-gray-300 mb-4">Get instant recommendations based on your mood</p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 w-full">
               {[
                 { mood: 'excited', name: 'Excited', icon: Zap, color: 'from-red-500 to-orange-500' },
                 { mood: 'relaxed', name: 'Relaxed', icon: Cloud, color: 'from-blue-500 to-cyan-500' },
@@ -466,7 +466,7 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime) => (
                 <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group block">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">

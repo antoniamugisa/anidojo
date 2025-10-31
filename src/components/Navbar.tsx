@@ -35,8 +35,8 @@ export default function Navbar() {
 	}, [isMenuOpen]);
 	
 	return (
-		<header className={`w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-sm shadow-lg' : 'bg-transparent'}`}>
-			<div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:py-6">
+		<header className={`w-full fixed top-0 left-0 right-0 z-50 transition-all duration-300 overflow-hidden ${scrolled ? 'bg-black/90 backdrop-blur-sm shadow-lg' : 'bg-transparent'}`}>
+			<div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-4 md:py-6 w-full">
 				{/* Logo */}
 				<Link href="/" className="text-xl md:text-2xl font-bold text-white drop-shadow-lg z-20">ANIDOJO</Link>
 				
