@@ -35,7 +35,7 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -232,7 +232,7 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
 
       {/* Search Suggestions Dropdown */}
       {showSuggestions && (suggestions.length > 0 || recentSearches.length > 0 || error) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl z-50 max-h-[80vh] md:max-h-96 overflow-y-auto w-full md:w-auto min-w-full">
           {/* Error State */}
           {error && (
             <div className="p-4 text-center text-red-400 text-sm">
@@ -263,7 +263,9 @@ export default function GlobalSearch({ className = '' }: GlobalSearchProps) {
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                        if (e.currentTarget.nextElementSibling) {
+                          (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                        }
                       }}
                     />
                     <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
