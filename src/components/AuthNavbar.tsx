@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import GlobalSearch from './GlobalSearch';
+import ThemeToggle from './ThemeToggle';
 import { Menu, X } from "lucide-react";
 
 export default function AuthNavbar() {
@@ -90,8 +91,9 @@ export default function AuthNavbar() {
         </nav>
         
         {/* Right side - Search Input (Desktop) */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center space-x-4">
           <GlobalSearch className="w-48 lg:w-64" />
+          <ThemeToggle className="bg-white/10 hover:bg-white/20" />
         </div>
         
         {/* Mobile Menu Toggle */}

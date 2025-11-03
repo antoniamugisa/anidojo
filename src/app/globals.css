@@ -1,11 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* stylelint-disable-next-line */
-@custom-variant dark (&:is(.dark *));
-
-/* stylelint-disable-next-line */
-@theme inline {
+/* Theme variables */
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -45,7 +42,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
+:root, .light-theme {
   --radius: 0.625rem;
   --background: #ffffff; /* white */
   --foreground: #000000; /* black for contrast */
@@ -65,6 +62,7 @@
   --border: #e5e7eb; /* gray-200 */
   --input: #e5e7eb; /* gray-200 */
   --ring: #dc2626; /* red-600 */
+  --ring-rgb: 220, 38, 38; /* red-600 RGB values */
   --chart-1: #dc2626; /* red */
   --chart-2: #16a34a; /* green */
   --chart-3: #eab308; /* yellow-500 */
@@ -80,7 +78,7 @@
   --sidebar-ring: #dc2626; /* red */
 }
 
-.dark {
+.dark, .dark-theme {
   --background: #000000; /* black */
   --foreground: #ffffff; /* white */
   --card: #1f2937; /* gray-800 */
@@ -99,6 +97,7 @@
   --border: #374151; /* gray-700 */
   --input: #374151; /* gray-700 */
   --ring: #dc2626; /* red-600 */
+  --ring-rgb: 220, 38, 38; /* red-600 RGB values */
   --chart-1: #dc2626; /* red */
   --chart-2: #16a34a; /* green */
   --chart-3: #eab308; /* yellow-500 */
@@ -114,14 +113,16 @@
   --sidebar-ring: #dc2626; /* red */
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    overflow-x: hidden;
-    width: 100%;
-    box-sizing: border-box;
-  }
+/* Base styles */
+* {
+  border-color: var(--border);
+  outline-color: rgba(var(--ring-rgb), 0.5);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }

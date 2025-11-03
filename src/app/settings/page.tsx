@@ -22,6 +22,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Types
 interface NotificationSetting {
@@ -44,7 +45,13 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('account');
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('dark');
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  
+  // Log theme changes for debugging
+  useEffect(() => {
+    console.log('Settings page - Current theme:', theme);
+    console.log('Settings page - Resolved theme:', resolvedTheme);
+  }, [theme, resolvedTheme]);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
@@ -548,6 +555,16 @@ export default function SettingsPage() {
                     <div>
                       <h3 className="text-lg font-medium mb-4">Theme</h3>
                       
+                      <div className="mb-4">
+                        <p className="text-sm mb-2">Current theme: <span className="font-bold">{resolvedTheme === 'dark' ? 'Dark' : 'Light'}</span></p>
+                        <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${resolvedTheme === 'dark' ? 'bg-blue-500' : 'bg-yellow-500'}`}
+                            style={{ width: '100%', transition: 'background-color 0.5s ease' }}
+                          ></div>
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <button
                           onClick={() => setTheme('light')}
@@ -560,7 +577,8 @@ export default function SettingsPage() {
                           <div className="flex items-center justify-center mb-4">
                             <Sun className="w-8 h-8 text-yellow-400" />
                           </div>
-                          <p className="font-medium text-white">Light</p>
+                          <p className="font-medium">Light</p>
+                          {theme === 'light' && <div className="mt-2 text-xs text-green-500">Selected</div>}
                         </button>
                         
                         <button
@@ -574,7 +592,8 @@ export default function SettingsPage() {
                           <div className="flex items-center justify-center mb-4">
                             <Moon className="w-8 h-8 text-blue-400" />
                           </div>
-                          <p className="font-medium text-white">Dark</p>
+                          <p className="font-medium">Dark</p>
+                          {theme === 'dark' && <div className="mt-2 text-xs text-green-500">Selected</div>}
                         </button>
                         
                         <button
@@ -588,7 +607,8 @@ export default function SettingsPage() {
                           <div className="flex items-center justify-center mb-4">
                             <Monitor className="w-8 h-8 text-gray-400" />
                           </div>
-                          <p className="font-medium text-white">System</p>
+                          <p className="font-medium">System</p>
+                          {theme === 'system' && <div className="mt-2 text-xs text-green-500">Selected</div>}
                         </button>
                       </div>
                     </div>

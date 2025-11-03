@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,15 +51,18 @@ export default function Navbar() {
 				
 				{/* Right side - Search Input (Desktop) */}
 				<div className="hidden md:flex items-center gap-4">
-					<div className="relative">
-						<input
-							type="text"
-							placeholder="Search anime..."
-							className="w-48 lg:w-64 px-4 py-2 pl-10 pr-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
-						/>
-						<div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-							<Search className="w-4 h-4 text-gray-300" />
+					<div className="flex items-center gap-4">
+						<div className="relative">
+							<input
+								type="text"
+								placeholder="Search anime..."
+								className="w-48 lg:w-64 px-4 py-2 pl-10 pr-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
+							/>
+							<div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+								<Search className="w-4 h-4 text-gray-300" />
+							</div>
 						</div>
+						<ThemeToggle className="bg-white/10 hover:bg-white/20" />
 					</div>
 				</div>
 				
