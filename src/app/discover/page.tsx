@@ -236,11 +236,34 @@ export default function DiscoverPage() {
       // Build API query parameters
       const queryParams = new URLSearchParams();
       
-      // Add genre filters
+      // Map genre names to genre IDs
+      const mapGenreNameToId = (genreName: string): number | undefined => {
+        const genre = availableGenres.find(g => 
+          g.name.toLowerCase() === genreName.toLowerCase() ||
+          g.name.toLowerCase().includes(genreName.toLowerCase()) ||
+          genreName.toLowerCase().includes(g.name.toLowerCase())
+        );
+        return genre?.mal_id;
+      };
+
+      // Get genre IDs from selected genres
+      let genreIds: number[] = [];
+      
       if (filters.genres.length > 0) {
-        queryParams.append('genres', filters.genres.join(','));
+        // Map user-selected genres to IDs
+        genreIds = filters.genres
+          .map(mapGenreNameToId)
+          .filter((id): id is number => id !== undefined);
       } else if (selectedMoodGenres.length > 0) {
-        queryParams.append('genres', selectedMoodGenres.join(','));
+        // Map mood-based genres to IDs
+        genreIds = selectedMoodGenres
+          .map(mapGenreNameToId)
+          .filter((id): id is number => id !== undefined);
+      }
+      
+      // Add genre IDs to query parameters
+      if (genreIds.length > 0) {
+        queryParams.append('genres', genreIds.join(','));
       }
 
       // Add other filters
