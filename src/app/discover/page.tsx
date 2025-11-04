@@ -327,13 +327,14 @@ export default function DiscoverPage() {
       moods.find(mood => mood.id === moodId)?.genres || []
     );
     
-    if (selectedMoodGenres.length > 0) {
+    if (selectedMoodGenres.length > 0 && anime.genres && Array.isArray(anime.genres)) {
       totalCriteria += 1;
       const genreMatches = anime.genres.filter(genre => 
-        selectedMoodGenres.some(moodGenre => 
-          genre.name.toLowerCase().includes(moodGenre.toLowerCase()) ||
-          moodGenre.toLowerCase().includes(genre.name.toLowerCase())
-        )
+        selectedMoodGenres.some(moodGenre => {
+          const genreName = typeof genre === 'string' ? genre : genre.name;
+          return genreName.toLowerCase().includes(moodGenre.toLowerCase()) ||
+                 moodGenre.toLowerCase().includes(genreName.toLowerCase());
+        })
       ).length;
       score += (genreMatches / selectedMoodGenres.length) * 100;
     }
