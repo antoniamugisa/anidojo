@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import GlobalSearch from '@/components/GlobalSearch';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Bell, 
   ChevronDown, 
@@ -82,14 +83,9 @@ export default function DashboardPage() {
   const [upcomingAnime, setUpcomingAnime] = useState<Anime[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { signOut } = useAuth();
 
-  // Mock authentication check
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
-      router.push('/signin');
-    }
-  }, [router]);
+  // Authentication check is handled by middleware
 
   // Fetch anime data
   useEffect(() => {
@@ -122,8 +118,8 @@ export default function DashboardPage() {
     fetchAnimeData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+  const handleLogout = async () => {
+    await signOut();
     router.push('/signin');
   };
 
