@@ -139,20 +139,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // But we can also ensure it exists here
       if (data.user) {
         // Wait a bit for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Update profile with username if needed
-        const { error: profileError } = await supabase
+        // Check if profile exists, if not create it
+        const { data: existingProfile } = await supabase
           .from('profiles')
-          .upsert({
-            id: data.user.id,
-            username: username,
-          }, {
-            onConflict: 'id',
-          });
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
+        if (!existingProfile) {
+          // Profile doesn't exist, create it
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              username: username,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            // Don't fail signup if profile creation fails - user can still use the app
+          }
+        } else {
+          // Profile exists, just update username if needed
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ username: username })
+            .eq('id', data.user.id);
+
+          if (updateError) {
+            console.error('Error updating profile:', updateError);
+          }
         }
 
         await loadUserProfile(data.user);

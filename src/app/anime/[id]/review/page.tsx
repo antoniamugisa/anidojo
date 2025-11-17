@@ -101,6 +101,19 @@ export default function WriteReviewPage() {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [agreedToGuidelines, setAgreedToGuidelines] = useState(false);
 
+  // Refs to avoid dependency issues in callbacks
+  const formDataRef = useRef(formData);
+  const existingReviewRef = useRef(existingReview);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  useEffect(() => {
+    existingReviewRef.current = existingReview;
+  }, [existingReview]);
+
   // Popular tags for autocomplete
   const popularTags = [
     'must-watch', 'overrated', 'hidden-gem', 'masterpiece', 'disappointing',
@@ -153,45 +166,54 @@ export default function WriteReviewPage() {
     };
 
     loadData();
-  }, [animeId, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animeId, user?.id]);
 
-  // saveDraft function with useCallback - FIXED: Memoized to prevent infinite loop
+  // saveDraft function with useCallback - Using refs to avoid dependency issues
   const saveDraft = useCallback(async () => {
-    if (!hasUnsavedChanges.current || !user) return;
+    if (!user) {
+      alert('You must be logged in to save a draft.');
+      return;
+    }
     
     setSaving(true);
     try {
+      // Use refs to get the latest values without adding them as dependencies
+      const currentFormData = formDataRef.current;
+      const currentExistingReview = existingReviewRef.current;
+      
       await upsertReview({
-        id: existingReview?.id,
+        id: currentExistingReview?.id,
         user_id: user.id,
         anime_id: parseInt(animeId),
-        rating: formData.rating,
-        story_rating: formData.storyRating || null,
-        animation_rating: formData.animationRating || null,
-        sound_rating: formData.soundRating || null,
-        character_rating: formData.characterRating || null,
-        enjoyment_rating: formData.enjoymentRating || null,
-        title: formData.title,
-        body: formData.body,
-        spoilers: formData.spoilers,
-        watch_status: formData.watchStatus,
-        episodes_watched: formData.episodesWatched || null,
-        tags: formData.tags,
-        pros: formData.pros || null,
-        cons: formData.cons || null,
-        recommendation: formData.recommendation || null,
+        rating: currentFormData.rating,
+        story_rating: currentFormData.storyRating || null,
+        animation_rating: currentFormData.animationRating || null,
+        sound_rating: currentFormData.soundRating || null,
+        character_rating: currentFormData.characterRating || null,
+        enjoyment_rating: currentFormData.enjoymentRating || null,
+        title: currentFormData.title || 'Untitled Review',
+        body: currentFormData.body || '',
+        spoilers: currentFormData.spoilers,
+        watch_status: currentFormData.watchStatus,
+        episodes_watched: currentFormData.episodesWatched || null,
+        tags: currentFormData.tags,
+        pros: currentFormData.pros || null,
+        cons: currentFormData.cons || null,
+        recommendation: currentFormData.recommendation || null,
         status: 'draft',
-        helpful_votes: existingReview?.helpful_votes || 0,
+        helpful_votes: currentExistingReview?.helpful_votes || 0,
       });
 
       setLastSaved(new Date());
       hasUnsavedChanges.current = false;
     } catch (error) {
       console.error('Error saving draft:', error);
+      alert(`Failed to save draft: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setSaving(false);
     }
-  }, [formData, animeId, existingReview, user]);
+  }, [animeId, user?.id]);
 
   // Auto-save functionality - TEMPORARILY DISABLED TO DEBUG INFINITE LOOP
   // useEffect(() => {
@@ -249,33 +271,42 @@ export default function WriteReviewPage() {
   };
 
   const publishReview = async () => {
-    if (!validateForm() || !user) {
+    if (!user) {
+      alert('You must be logged in to publish a review.');
+      return;
+    }
+
+    if (!validateForm()) {
       return;
     }
 
     setPublishing(true);
     try {
+      // Use refs to get the latest values
+      const currentFormData = formDataRef.current;
+      const currentExistingReview = existingReviewRef.current;
+      
       await upsertReview({
-        id: existingReview?.id,
+        id: currentExistingReview?.id,
         user_id: user.id,
         anime_id: parseInt(animeId),
-        rating: formData.rating,
-        story_rating: formData.storyRating || null,
-        animation_rating: formData.animationRating || null,
-        sound_rating: formData.soundRating || null,
-        character_rating: formData.characterRating || null,
-        enjoyment_rating: formData.enjoymentRating || null,
-        title: formData.title,
-        body: formData.body,
-        spoilers: formData.spoilers,
-        watch_status: formData.watchStatus,
-        episodes_watched: formData.episodesWatched || null,
-        tags: formData.tags,
-        pros: formData.pros || null,
-        cons: formData.cons || null,
-        recommendation: formData.recommendation || null,
+        rating: currentFormData.rating,
+        story_rating: currentFormData.storyRating || null,
+        animation_rating: currentFormData.animationRating || null,
+        sound_rating: currentFormData.soundRating || null,
+        character_rating: currentFormData.characterRating || null,
+        enjoyment_rating: currentFormData.enjoymentRating || null,
+        title: currentFormData.title,
+        body: currentFormData.body,
+        spoilers: currentFormData.spoilers,
+        watch_status: currentFormData.watchStatus,
+        episodes_watched: currentFormData.episodesWatched || null,
+        tags: currentFormData.tags,
+        pros: currentFormData.pros || null,
+        cons: currentFormData.cons || null,
+        recommendation: currentFormData.recommendation || null,
         status: 'published',
-        helpful_votes: existingReview?.helpful_votes || 0,
+        helpful_votes: currentExistingReview?.helpful_votes || 0,
       });
       
       // Show success message and redirect
@@ -283,7 +314,7 @@ export default function WriteReviewPage() {
       router.push(`/anime/${animeId}`);
     } catch (error) {
       console.error('Error publishing review:', error);
-      alert('Failed to publish review. Please try again.');
+      alert(`Failed to publish review: ${error instanceof Error ? error.message : 'Please try again.'}`);
     } finally {
       setPublishing(false);
       setShowPublishModal(false);

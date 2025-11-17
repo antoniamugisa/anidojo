@@ -102,14 +102,51 @@ export async function getUserReview(userId: string, animeId: number) {
 }
 
 export async function upsertReview(review: Omit<Review, 'id' | 'created_at' | 'updated_at' | 'helpful_votes'> & { id?: string }) {
+  // If we have an ID, update by ID
+  if (review.id) {
+    const { data, error } = await supabase
+      .from('reviews')
+      .update({
+        ...review,
+        updated_at: new Date().toISOString(),
+        helpful_votes: review.helpful_votes || 0,
+      })
+      .eq('id', review.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Review;
+  }
+
+  // If no ID, check if a review already exists for this user/anime
+  const existing = await getUserReview(review.user_id, review.anime_id);
+  
+  if (existing) {
+    // Update existing review
+    const { data, error } = await supabase
+      .from('reviews')
+      .update({
+        ...review,
+        updated_at: new Date().toISOString(),
+        helpful_votes: review.helpful_votes || existing.helpful_votes || 0,
+      })
+      .eq('id', existing.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Review;
+  }
+
+  // Create new review
   const { data, error } = await supabase
     .from('reviews')
-    .upsert({
+    .insert({
       ...review,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       helpful_votes: review.helpful_votes || 0,
-    }, {
-      onConflict: review.id ? 'id' : 'user_id,anime_id',
     })
     .select()
     .single();
