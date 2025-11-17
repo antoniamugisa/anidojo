@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthNavbar from '@/components/AuthNavbar';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -77,13 +79,18 @@ export default function SignUpPage() {
     
     setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const result = await signUp(formData.username, formData.email, formData.password);
+    
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setErrors({ 
+        ...errors, 
+        email: result.error || 'Failed to create account',
+      });
+    }
     
     setLoading(false);
-    localStorage.setItem('isAuthenticated', 'true');
-    alert('Account created successfully!');
-    router.push('/dashboard');
   };
 
   const handleSocialLogin = (provider: string) => {

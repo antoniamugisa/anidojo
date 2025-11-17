@@ -16,6 +16,9 @@ import {
   ArrowLeft,
   AlertCircle
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserReview, upsertReview } from '@/lib/supabase/queries';
+import type { Review as ReviewType } from '@/types/database';
 
 // Types
 interface Anime {
@@ -38,30 +41,7 @@ interface Anime {
   }>;
 }
 
-interface Review {
-  id: string;
-  animeId: number;
-  userId: string;
-  rating: number;
-  storyRating?: number;
-  animationRating?: number;
-  soundRating?: number;
-  characterRating?: number;
-  enjoymentRating?: number;
-  title: string;
-  body: string;
-  spoilers: boolean;
-  watchStatus: 'completed' | 'watching' | 'dropped' | 'plan-to-watch';
-  episodesWatched?: number;
-  tags: string[];
-  pros?: string;
-  cons?: string;
-  recommendation?: 'highly-recommend' | 'recommend' | 'mixed' | 'not-recommend' | 'strongly-not-recommend';
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
-  helpfulVotes: number;
-}
+// Review interface is now imported from types/database
 
 interface ReviewFormData {
   rating: number;
@@ -90,13 +70,14 @@ export default function WriteReviewPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isEditing, setIsEditing] = useState(false);
-  const [existingReview, setExistingReview] = useState<Review | null>(null);
+  const [existingReview, setExistingReview] = useState<ReviewType | null>(null);
   
   const router = useRouter();
   const params = useParams();
   const animeId = params.id as string;
   const autoSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const hasUnsavedChanges = useRef(false);
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ReviewFormData>({
     rating: 0,
@@ -138,30 +119,31 @@ export default function WriteReviewPage() {
           setAnime(animeData.data);
         }
 
-        // Check for existing review
-        const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-        const existingReview = reviews.find((r: Review) => r.animeId === parseInt(animeId));
-        
-        if (existingReview) {
-          setIsEditing(true);
-          setExistingReview(existingReview);
-          setFormData({
-            rating: existingReview.rating,
-            storyRating: existingReview.storyRating || 0,
-            animationRating: existingReview.animationRating || 0,
-            soundRating: existingReview.soundRating || 0,
-            characterRating: existingReview.characterRating || 0,
-            enjoymentRating: existingReview.enjoymentRating || 0,
-            title: existingReview.title,
-            body: existingReview.body,
-            spoilers: existingReview.spoilers,
-            watchStatus: existingReview.watchStatus,
-            episodesWatched: existingReview.episodesWatched || 0,
-            tags: existingReview.tags || [],
-            pros: existingReview.pros || '',
-            cons: existingReview.cons || '',
-            recommendation: existingReview.recommendation || 'recommend'
-          });
+        // Check for existing review if user is logged in
+        if (user) {
+          const existingReview = await getUserReview(user.id, parseInt(animeId));
+          
+          if (existingReview) {
+            setIsEditing(true);
+            setExistingReview(existingReview);
+            setFormData({
+              rating: existingReview.rating,
+              storyRating: existingReview.story_rating || 0,
+              animationRating: existingReview.animation_rating || 0,
+              soundRating: existingReview.sound_rating || 0,
+              characterRating: existingReview.character_rating || 0,
+              enjoymentRating: existingReview.enjoyment_rating || 0,
+              title: existingReview.title,
+              body: existingReview.body,
+              spoilers: existingReview.spoilers,
+              watchStatus: existingReview.watch_status,
+              episodesWatched: existingReview.episodes_watched || 0,
+              tags: existingReview.tags || [],
+              pros: existingReview.pros || '',
+              cons: existingReview.cons || '',
+              recommendation: existingReview.recommendation || 'recommend'
+            });
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -171,34 +153,37 @@ export default function WriteReviewPage() {
     };
 
     loadData();
-  }, [animeId]);
+  }, [animeId, user]);
 
   // saveDraft function with useCallback - FIXED: Memoized to prevent infinite loop
   const saveDraft = useCallback(async () => {
-    if (!hasUnsavedChanges.current) return;
+    if (!hasUnsavedChanges.current || !user) return;
     
     setSaving(true);
     try {
-      const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      const draftReview: Review = {
-        id: existingReview?.id || `review_${Date.now()}`,
-        animeId: parseInt(animeId),
-        userId: 'current_user', // In real app, get from auth context
-        ...formData,
+      await upsertReview({
+        id: existingReview?.id,
+        user_id: user.id,
+        anime_id: parseInt(animeId),
+        rating: formData.rating,
+        story_rating: formData.storyRating || null,
+        animation_rating: formData.animationRating || null,
+        sound_rating: formData.soundRating || null,
+        character_rating: formData.characterRating || null,
+        enjoyment_rating: formData.enjoymentRating || null,
+        title: formData.title,
+        body: formData.body,
+        spoilers: formData.spoilers,
+        watch_status: formData.watchStatus,
+        episodes_watched: formData.episodesWatched || null,
+        tags: formData.tags,
+        pros: formData.pros || null,
+        cons: formData.cons || null,
+        recommendation: formData.recommendation || null,
         status: 'draft',
-        createdAt: existingReview?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        helpfulVotes: existingReview?.helpfulVotes || 0
-      };
+        helpful_votes: existingReview?.helpful_votes || 0,
+      });
 
-      const existingIndex = reviews.findIndex((r: Review) => r.id === draftReview.id);
-      if (existingIndex >= 0) {
-        reviews[existingIndex] = draftReview;
-      } else {
-        reviews.push(draftReview);
-      }
-
-      localStorage.setItem('reviews', JSON.stringify(reviews));
       setLastSaved(new Date());
       hasUnsavedChanges.current = false;
     } catch (error) {
@@ -206,7 +191,7 @@ export default function WriteReviewPage() {
     } finally {
       setSaving(false);
     }
-  }, [formData, animeId, existingReview]);
+  }, [formData, animeId, existingReview, user]);
 
   // Auto-save functionality - TEMPORARILY DISABLED TO DEBUG INFINITE LOOP
   // useEffect(() => {
@@ -264,38 +249,41 @@ export default function WriteReviewPage() {
   };
 
   const publishReview = async () => {
-    if (!validateForm()) {
+    if (!validateForm() || !user) {
       return;
     }
 
     setPublishing(true);
     try {
-      const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      const publishedReview: Review = {
-        id: existingReview?.id || `review_${Date.now()}`,
-        animeId: parseInt(animeId),
-        userId: 'current_user',
-        ...formData,
+      await upsertReview({
+        id: existingReview?.id,
+        user_id: user.id,
+        anime_id: parseInt(animeId),
+        rating: formData.rating,
+        story_rating: formData.storyRating || null,
+        animation_rating: formData.animationRating || null,
+        sound_rating: formData.soundRating || null,
+        character_rating: formData.characterRating || null,
+        enjoyment_rating: formData.enjoymentRating || null,
+        title: formData.title,
+        body: formData.body,
+        spoilers: formData.spoilers,
+        watch_status: formData.watchStatus,
+        episodes_watched: formData.episodesWatched || null,
+        tags: formData.tags,
+        pros: formData.pros || null,
+        cons: formData.cons || null,
+        recommendation: formData.recommendation || null,
         status: 'published',
-        createdAt: existingReview?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        helpfulVotes: existingReview?.helpfulVotes || 0
-      };
-
-      const existingIndex = reviews.findIndex((r: Review) => r.id === publishedReview.id);
-      if (existingIndex >= 0) {
-        reviews[existingIndex] = publishedReview;
-      } else {
-        reviews.push(publishedReview);
-      }
-
-      localStorage.setItem('reviews', JSON.stringify(reviews));
+        helpful_votes: existingReview?.helpful_votes || 0,
+      });
       
       // Show success message and redirect
       alert('Review published successfully!');
       router.push(`/anime/${animeId}`);
     } catch (error) {
       console.error('Error publishing review:', error);
+      alert('Failed to publish review. Please try again.');
     } finally {
       setPublishing(false);
       setShowPublishModal(false);

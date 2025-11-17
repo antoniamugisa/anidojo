@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { getReviews, deleteReview } from '@/lib/supabase/queries';
+import type { Review as ReviewType } from '@/types/database';
 import { 
   Star, 
   Edit3, 
@@ -27,30 +30,8 @@ import {
   BookOpen
 } from 'lucide-react';
 
-// Types
-interface Review {
-  id: string;
-  animeId: number;
-  userId: string;
-  rating: number;
-  storyRating?: number;
-  animationRating?: number;
-  soundRating?: number;
-  characterRating?: number;
-  enjoymentRating?: number;
-  title: string;
-  body: string;
-  spoilers: boolean;
-  watchStatus: 'completed' | 'watching' | 'dropped' | 'plan-to-watch';
-  episodesWatched?: number;
-  tags: string[];
-  pros?: string;
-  cons?: string;
-  recommendation?: 'highly-recommend' | 'recommend' | 'mixed' | 'not-recommend' | 'strongly-not-recommend';
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
-  helpfulVotes: number;
+// Types - Review interface is now imported from types/database
+interface ReviewDisplay extends ReviewType {
   animeTitle?: string;
   animeImage?: string;
 }
@@ -66,8 +47,8 @@ interface ReviewStats {
 }
 
 export default function MyReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewDisplay[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<ReviewDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReviews, setSelectedReviews] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'published' | 'drafts'>('all');
@@ -78,19 +59,45 @@ export default function MyReviewsPage() {
   const [stats, setStats] = useState<ReviewStats | null>(null);
   
   const router = useRouter();
+  const { user } = useAuth();
 
   // Load reviews and calculate stats
   useEffect(() => {
     const loadReviews = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const savedReviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-        const userReviews = savedReviews.filter((review: Review) => review.userId === 'current_user');
+        const dbReviews = await getReviews(undefined, user.id);
         
-        // Add anime data to reviews (in real app, this would come from API)
-        const reviewsWithAnimeData = userReviews.map((review: Review) => ({
-          ...review,
-          animeTitle: `Anime ${review.animeId}`, // Mock data
-          animeImage: '/images/placeholder-anime.jpg' // Mock data
+        // Convert DB reviews to display format
+        const reviewsWithAnimeData: ReviewDisplay[] = dbReviews.map((review: any) => ({
+          id: review.id,
+          user_id: review.user_id,
+          anime_id: review.anime_id,
+          rating: review.rating,
+          story_rating: review.story_rating,
+          animation_rating: review.animation_rating,
+          sound_rating: review.sound_rating,
+          character_rating: review.character_rating,
+          enjoyment_rating: review.enjoyment_rating,
+          title: review.title,
+          body: review.body,
+          spoilers: review.spoilers,
+          watch_status: review.watch_status,
+          episodes_watched: review.episodes_watched,
+          tags: review.tags,
+          pros: review.pros,
+          cons: review.cons,
+          recommendation: review.recommendation,
+          status: review.status,
+          helpful_votes: review.helpful_votes,
+          created_at: review.created_at,
+          updated_at: review.updated_at,
+          animeTitle: `Anime ${review.anime_id}`, // TODO: Fetch from API
+          animeImage: '/images/placeholder-anime.jpg' // TODO: Fetch from API
         }));
         
         setReviews(reviewsWithAnimeData);
@@ -107,7 +114,8 @@ export default function MyReviewsPage() {
     };
 
     loadReviews();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Filter and sort reviews
   useEffect(() => {
@@ -133,15 +141,15 @@ export default function MyReviewsPage() {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
         case 'oldest':
-          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
         case 'highest-rated':
           return b.rating - a.rating;
         case 'lowest-rated':
           return a.rating - b.rating;
         case 'most-helpful':
-          return b.helpfulVotes - a.helpfulVotes;
+          return b.helpful_votes - a.helpful_votes;
         default:
           return 0;
       }
@@ -150,7 +158,7 @@ export default function MyReviewsPage() {
     setFilteredReviews(filtered);
   }, [reviews, activeTab, sortBy, searchQuery]);
 
-  const calculateStats = (reviews: Review[]): ReviewStats => {
+  const calculateStats = (reviews: ReviewDisplay[]): ReviewStats => {
     const publishedReviews = reviews.filter(r => r.status === 'published');
     const totalReviews = publishedReviews.length;
     const averageScore = totalReviews > 0 
@@ -158,19 +166,19 @@ export default function MyReviewsPage() {
       : 0;
     
     const reviewsThisMonth = publishedReviews.filter(r => {
-      const reviewDate = new Date(r.createdAt);
+      const reviewDate = new Date(r.created_at);
       const now = new Date();
       return reviewDate.getMonth() === now.getMonth() && 
              reviewDate.getFullYear() === now.getFullYear();
     }).length;
     
     const reviewsThisYear = publishedReviews.filter(r => {
-      const reviewDate = new Date(r.createdAt);
+      const reviewDate = new Date(r.created_at);
       const now = new Date();
       return reviewDate.getFullYear() === now.getFullYear();
     }).length;
     
-    const totalHelpfulVotes = publishedReviews.reduce((sum, r) => sum + r.helpfulVotes, 0);
+    const totalHelpfulVotes = publishedReviews.reduce((sum, r) => sum + r.helpful_votes, 0);
     
     const ratingDistribution: Record<number, number> = {};
     for (let i = 1; i <= 10; i++) {
@@ -207,15 +215,14 @@ export default function MyReviewsPage() {
   const handleDeleteReview = async (reviewId: string) => {
     setDeleting(true);
     try {
-      const savedReviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      const updatedReviews = savedReviews.filter((r: Review) => r.id !== reviewId);
-      localStorage.setItem('reviews', JSON.stringify(updatedReviews));
+      await deleteReview(reviewId);
       
-      setReviews(prev => prev.filter(r => r.id !== reviewId));
+      const updatedReviews = reviews.filter(r => r.id !== reviewId);
+      setReviews(updatedReviews);
       setSelectedReviews(prev => prev.filter(id => id !== reviewId));
       
       // Recalculate stats
-      const newStats = calculateStats(updatedReviews.filter((r: Review) => r.userId === 'current_user'));
+      const newStats = calculateStats(updatedReviews);
       setStats(newStats);
     } catch (error) {
       console.error('Error deleting review:', error);
@@ -230,15 +237,14 @@ export default function MyReviewsPage() {
     
     setDeleting(true);
     try {
-      const savedReviews = JSON.parse(localStorage.getItem('reviews') || '[]');
-      const updatedReviews = savedReviews.filter((r: Review) => !selectedReviews.includes(r.id));
-      localStorage.setItem('reviews', JSON.stringify(updatedReviews));
+      await Promise.all(selectedReviews.map(id => deleteReview(id)));
       
-      setReviews(prev => prev.filter(r => !selectedReviews.includes(r.id)));
+      const updatedReviews = reviews.filter(r => !selectedReviews.includes(r.id));
+      setReviews(updatedReviews);
       setSelectedReviews([]);
       
       // Recalculate stats
-      const newStats = calculateStats(updatedReviews.filter((r: Review) => r.userId === 'current_user'));
+      const newStats = calculateStats(updatedReviews);
       setStats(newStats);
     } catch (error) {
       console.error('Error bulk deleting reviews:', error);

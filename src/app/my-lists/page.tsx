@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AddAnimeModal from '@/components/AddAnimeModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAnimeEntries, upsertAnimeEntry, deleteAnimeEntry, getCustomLists } from '@/lib/supabase/queries';
+import type { AnimeEntry as DBAnimeEntry } from '@/types/database';
 import { 
   Star, 
   Edit3, 
@@ -120,19 +123,88 @@ export default function MyListsPage() {
   const [customLists, setCustomLists] = useState<CustomList[]>([]);
   
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Helper function to convert DB entry to component entry
+  const dbToComponentEntry = (dbEntry: DBAnimeEntry): AnimeEntry => ({
+    animeId: dbEntry.anime_id,
+    title: dbEntry.title,
+    titleEnglish: dbEntry.title_english || undefined,
+    titleJapanese: dbEntry.title_japanese || undefined,
+    image: dbEntry.image || undefined,
+    type: dbEntry.type || undefined,
+    episodes: dbEntry.episodes || undefined,
+    status: dbEntry.status,
+    episodesWatched: dbEntry.episodes_watched,
+    score: dbEntry.score || undefined,
+    startDate: dbEntry.start_date || undefined,
+    finishDate: dbEntry.finish_date || undefined,
+    notes: dbEntry.notes || undefined,
+    tags: dbEntry.tags,
+    favorite: dbEntry.favorite,
+    rewatchCount: dbEntry.rewatch_count,
+    priority: dbEntry.priority || undefined,
+    dateAdded: dbEntry.created_at,
+    lastUpdated: dbEntry.updated_at,
+    genres: dbEntry.genres,
+    year: dbEntry.year || undefined,
+    rating: dbEntry.rating || undefined,
+  });
+
+  // Helper function to convert component entry to DB entry
+  const componentToDBEntry = (entry: AnimeEntry, userId: string): Omit<DBAnimeEntry, 'id' | 'created_at' | 'updated_at'> => ({
+    user_id: userId,
+    anime_id: entry.animeId,
+    title: entry.title,
+    title_english: entry.titleEnglish || null,
+    title_japanese: entry.titleJapanese || null,
+    image: entry.image || null,
+    type: entry.type || null,
+    episodes: entry.episodes || null,
+    status: entry.status,
+    episodes_watched: entry.episodesWatched,
+    score: entry.score || null,
+    start_date: entry.startDate || null,
+    finish_date: entry.finishDate || null,
+    notes: entry.notes || null,
+    tags: entry.tags,
+    favorite: entry.favorite,
+    rewatch_count: entry.rewatchCount,
+    priority: entry.priority || null,
+    genres: entry.genres || [],
+    year: entry.year || null,
+    rating: entry.rating || null,
+  });
 
   // Load anime entries and calculate stats
   useEffect(() => {
     const loadData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const savedEntries = JSON.parse(localStorage.getItem('animeEntries') || '[]');
-        const savedCustomLists = JSON.parse(localStorage.getItem('customLists') || '[]');
+        const dbEntries = await getAnimeEntries(user.id);
+        const entries = dbEntries.map(dbToComponentEntry);
         
-        setAnimeEntries(savedEntries);
-        setCustomLists(savedCustomLists);
+        setAnimeEntries(entries);
+        
+        // Load custom lists
+        const dbLists = await getCustomLists(user.id);
+        // Convert DB lists to component format
+        const lists = dbLists.map(list => ({
+          id: list.id,
+          name: list.name,
+          description: list.description || undefined,
+          animeIds: (list as any).custom_list_entries?.map((e: any) => e.anime_id) || [],
+          createdAt: list.created_at,
+          isPublic: list.is_public,
+        }));
+        setCustomLists(lists);
         
         // Calculate stats
-        const calculatedStats = calculateStats(savedEntries);
+        const calculatedStats = calculateStats(entries);
         setStats(calculatedStats);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -142,7 +214,8 @@ export default function MyListsPage() {
     };
 
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Filter and sort entries
   useEffect(() => {
@@ -175,9 +248,9 @@ export default function MyListsPage() {
         case 'score-low':
           return (a.score || 0) - (b.score || 0);
         case 'date-added':
-          return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          return new Date(b.dateAdded || 0).getTime() - new Date(a.dateAdded || 0).getTime();
         case 'last-updated':
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+          return new Date(b.lastUpdated || 0).getTime() - new Date(a.lastUpdated || 0).getTime();
         case 'progress':
           const aProgress = a.episodes ? (a.episodesWatched / a.episodes) : 0;
           const bProgress = b.episodes ? (b.episodesWatched / b.episodes) : 0;
@@ -272,52 +345,81 @@ export default function MyListsPage() {
     }
   };
 
-  const handleUpdateEntry = (updatedEntry: AnimeEntry) => {
-    const newEntries = animeEntries.map(entry => 
-      entry.animeId === updatedEntry.animeId ? updatedEntry : entry
-    );
-    setAnimeEntries(newEntries);
-    localStorage.setItem('animeEntries', JSON.stringify(newEntries));
-    
-    // Recalculate stats
-    const newStats = calculateStats(newEntries);
-    setStats(newStats);
+  const handleUpdateEntry = async (updatedEntry: AnimeEntry) => {
+    if (!user) return;
+
+    try {
+      await upsertAnimeEntry(componentToDBEntry(updatedEntry, user.id));
+      
+      const newEntries = animeEntries.map(entry => 
+        entry.animeId === updatedEntry.animeId ? updatedEntry : entry
+      );
+      setAnimeEntries(newEntries);
+      
+      // Recalculate stats
+      const newStats = calculateStats(newEntries);
+      setStats(newStats);
+    } catch (error) {
+      console.error('Error updating entry:', error);
+    }
   };
 
-  const handleDeleteEntry = (animeId: number) => {
-    const newEntries = animeEntries.filter(entry => entry.animeId !== animeId);
-    setAnimeEntries(newEntries);
-    localStorage.setItem('animeEntries', JSON.stringify(newEntries));
-    setSelectedEntries(prev => prev.filter(id => id !== animeId));
-    
-    // Recalculate stats
-    const newStats = calculateStats(newEntries);
-    setStats(newStats);
+  const handleDeleteEntry = async (animeId: number) => {
+    if (!user) return;
+
+    try {
+      await deleteAnimeEntry(user.id, animeId);
+      
+      const newEntries = animeEntries.filter(entry => entry.animeId !== animeId);
+      setAnimeEntries(newEntries);
+      setSelectedEntries(prev => prev.filter(id => id !== animeId));
+      
+      // Recalculate stats
+      const newStats = calculateStats(newEntries);
+      setStats(newStats);
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+    }
   };
 
-  const handleBulkDelete = () => {
-    const newEntries = animeEntries.filter(entry => !selectedEntries.includes(entry.animeId));
-    setAnimeEntries(newEntries);
-    localStorage.setItem('animeEntries', JSON.stringify(newEntries));
-    setSelectedEntries([]);
-    setBulkEditMode(false);
-    
-    // Recalculate stats
-    const newStats = calculateStats(newEntries);
-    setStats(newStats);
+  const handleBulkDelete = async () => {
+    if (!user) return;
+
+    try {
+      // Delete all selected entries
+      await Promise.all(selectedEntries.map(animeId => deleteAnimeEntry(user.id, animeId)));
+      
+      const newEntries = animeEntries.filter(entry => !selectedEntries.includes(entry.animeId));
+      setAnimeEntries(newEntries);
+      setSelectedEntries([]);
+      setBulkEditMode(false);
+      
+      // Recalculate stats
+      const newStats = calculateStats(newEntries);
+      setStats(newStats);
+    } catch (error) {
+      console.error('Error bulk deleting entries:', error);
+    }
   };
 
-  const handleAddAnime = (animeData: any) => {
-    const newEntries = [...animeEntries, animeData];
-    setAnimeEntries(newEntries);
-    localStorage.setItem('animeEntries', JSON.stringify(newEntries));
-    
-    // Recalculate stats
-    const newStats = calculateStats(newEntries);
-    setStats(newStats);
+  const handleAddAnime = async (animeData: any) => {
+    if (!user) return;
+
+    try {
+      await upsertAnimeEntry(componentToDBEntry(animeData, user.id));
+      
+      const newEntries = [...animeEntries, animeData];
+      setAnimeEntries(newEntries);
+      
+      // Recalculate stats
+      const newStats = calculateStats(newEntries);
+      setStats(newStats);
+    } catch (error) {
+      console.error('Error adding anime:', error);
+    }
   };
 
-  const handleIncrementEpisode = (animeId: number) => {
+  const handleIncrementEpisode = async (animeId: number) => {
     const entry = animeEntries.find(e => e.animeId === animeId);
     if (!entry) return;
     
@@ -329,7 +431,7 @@ export default function MyListsPage() {
       status: newEpisodesWatched >= (entry.episodes || 0) ? 'completed' as const : entry.status
     };
     
-    handleUpdateEntry(updatedEntry);
+    await handleUpdateEntry(updatedEntry);
   };
 
   const getStatusColor = (status: string) => {

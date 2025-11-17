@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthNavbar from '@/components/AuthNavbar';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -58,13 +60,19 @@ export default function SignInPage() {
     
     setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const result = await signIn(formData.email, formData.password);
+    
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setErrors({ 
+        ...errors, 
+        email: result.error || 'Invalid email or password',
+        password: result.error || 'Invalid email or password'
+      });
+    }
     
     setLoading(false);
-    localStorage.setItem('isAuthenticated', 'true');
-    alert('Sign in successful!');
-    router.push('/dashboard');
   };
 
   const handleSocialLogin = (provider: string) => {
