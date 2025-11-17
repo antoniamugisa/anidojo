@@ -214,6 +214,13 @@ export default function MyListsPage() {
       'on-hold': entries.filter(e => e.status === 'on-hold').length,
       'dropped': entries.filter(e => e.status === 'dropped').length
     };
+    const {
+      'plan-to-watch': planToWatch,
+      'on-hold': onHold,
+      watching,
+      completed,
+      dropped
+    } = statusCounts;
     
     const scoreDistribution: Record<number, number> = {};
     for (let i = 1; i <= 10; i++) {
@@ -238,7 +245,11 @@ export default function MyListsPage() {
       daysWatched,
       meanScore: Math.round(meanScore * 100) / 100,
       standardDeviation: Math.round(standardDeviation * 100) / 100,
-      ...statusCounts,
+      planToWatch,
+      watching,
+      completed,
+      onHold,
+      dropped,
       scoreDistribution,
       topGenres,
       activityData: [] // Mock data for now
