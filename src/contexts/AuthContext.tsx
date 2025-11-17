@@ -33,9 +33,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('AuthContext: Session check', { hasSession: !!session, hasUser: !!session?.user, error });
         if (session?.user) {
+          console.log('AuthContext: Loading user profile for', session.user.id);
           await loadUserProfile(session.user);
+        } else {
+          console.log('AuthContext: No session found');
         }
       } catch (error) {
         console.error('Error getting session:', error);
@@ -72,8 +76,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', supabaseUser.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      // If profile doesn't exist, create it
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        const username = supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'user';
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: supabaseUser.id,
+            username: username,
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        }
+
+        // Set user even if profile creation fails
+        const userData: User = {
+          id: supabaseUser.id,
+          username: username,
+          email: supabaseUser.email || '',
+          avatar_url: null,
+          bio: null,
+        };
+        setUser(userData);
+        return;
+      }
+
+      if (error) {
         console.error('Error loading profile:', error);
+        // Still set user with basic info even if profile load fails
+        const userData: User = {
+          id: supabaseUser.id,
+          username: supabaseUser.email?.split('@')[0] || 'user',
+          email: supabaseUser.email || '',
+          avatar_url: null,
+          bio: null,
+        };
+        setUser(userData);
         return;
       }
 
@@ -85,9 +125,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bio: profile?.bio || null,
       };
 
+      console.log('AuthContext: User profile loaded', userData);
       setUser(userData);
     } catch (error) {
       console.error('Error loading user profile:', error);
+      // Set user with basic info even on error
+      const userData: User = {
+        id: supabaseUser.id,
+        username: supabaseUser.email?.split('@')[0] || 'user',
+        email: supabaseUser.email || '',
+        avatar_url: null,
+        bio: null,
+      };
+      console.log('AuthContext: Setting user with basic info', userData);
+      setUser(userData);
     }
   };
 

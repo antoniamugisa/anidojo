@@ -57,7 +57,7 @@ export async function deleteAnimeEntry(userId: string, animeId: number) {
 export async function getReviews(animeId?: number, userId?: string, status?: 'draft' | 'published') {
   let query = supabase
     .from('reviews')
-    .select('*, profiles:user_id(username, avatar_url)')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (animeId) {
@@ -81,7 +81,7 @@ export async function getReviews(animeId?: number, userId?: string, status?: 'dr
 export async function getReview(reviewId: string) {
   const { data, error } = await supabase
     .from('reviews')
-    .select('*, profiles:user_id(username, avatar_url)')
+    .select('*')
     .eq('id', reviewId)
     .single();
 
@@ -198,7 +198,7 @@ export async function getUserReviewVote(reviewId: string, userId: string) {
 export async function getComments(reviewId: string) {
   const { data, error } = await supabase
     .from('comments')
-    .select('*, profiles:user_id(username, avatar_url)')
+    .select('*')
     .eq('review_id', reviewId)
     .is('deleted_at', null)
     .order('created_at', { ascending: true });

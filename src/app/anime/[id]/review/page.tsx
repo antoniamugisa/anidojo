@@ -77,7 +77,7 @@ export default function WriteReviewPage() {
   const animeId = params.id as string;
   const autoSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const hasUnsavedChanges = useRef(false);
-  const { user } = useAuth();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState<ReviewFormData>({
     rating: 0,
@@ -171,8 +171,19 @@ export default function WriteReviewPage() {
 
   // saveDraft function with useCallback - Using refs to avoid dependency issues
   const saveDraft = useCallback(async () => {
-    if (!user) {
-      alert('You must be logged in to save a draft.');
+    // Wait for auth to finish loading
+    if (authLoading) {
+      alert('Please wait while we verify your login...');
+      return;
+    }
+
+    // Debug logging
+    console.log('Save draft clicked:', { user, isAuthenticated, authLoading });
+
+    if (!user || !user.id) {
+      console.error('User not found:', { user, isAuthenticated, authLoading });
+      alert('You must be logged in to save a draft. Please sign in and try again.');
+      router.push('/signin');
       return;
     }
     
@@ -213,7 +224,7 @@ export default function WriteReviewPage() {
     } finally {
       setSaving(false);
     }
-  }, [animeId, user?.id]);
+  }, [animeId, user?.id, authLoading, router]);
 
   // Auto-save functionality - TEMPORARILY DISABLED TO DEBUG INFINITE LOOP
   // useEffect(() => {
@@ -271,8 +282,16 @@ export default function WriteReviewPage() {
   };
 
   const publishReview = async () => {
-    if (!user) {
-      alert('You must be logged in to publish a review.');
+    // Wait for auth to finish loading
+    if (authLoading) {
+      alert('Please wait while we verify your login...');
+      return;
+    }
+
+    if (!user || !user.id) {
+      console.error('User not found:', { user, authLoading });
+      alert('You must be logged in to publish a review. Please sign in and try again.');
+      router.push('/signin');
       return;
     }
 
@@ -457,8 +476,16 @@ export default function WriteReviewPage() {
                 <span>Save Draft</span>
               </button>
               <button
-                onClick={() => setShowPublishModal(true)}
-                disabled={formData.rating === 0 || !formData.title.trim() || formData.body.length < 100}
+                onClick={() => {
+                  console.log('Publish button clicked:', { user, isAuthenticated, authLoading, formData });
+                  if (!user || !user.id) {
+                    alert('You must be logged in to publish a review. Please sign in and try again.');
+                    router.push('/signin');
+                    return;
+                  }
+                  setShowPublishModal(true);
+                }}
+                disabled={formData.rating === 0 || !formData.title.trim() || formData.body.length < 100 || !isAuthenticated}
                 className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-3 sm:px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
               >
                 <Send className="w-4 h-4" />
