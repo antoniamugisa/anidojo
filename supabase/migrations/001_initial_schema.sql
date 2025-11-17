@@ -63,8 +63,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   status TEXT DEFAULT 'draft' NOT NULL CHECK (status IN ('draft', 'published')),
   helpful_votes INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  UNIQUE(user_id, anime_id) WHERE status = 'published'
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 -- Create review_votes table
@@ -126,6 +125,11 @@ CREATE INDEX IF NOT EXISTS idx_anime_entries_status ON public.anime_entries(stat
 CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON public.reviews(user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_anime_id ON public.reviews(anime_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_status ON public.reviews(status);
+
+-- Create partial unique index for published reviews (one published review per user per anime)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_user_anime_published 
+ON public.reviews(user_id, anime_id) 
+WHERE status = 'published';
 CREATE INDEX IF NOT EXISTS idx_review_votes_review_id ON public.review_votes(review_id);
 CREATE INDEX IF NOT EXISTS idx_review_votes_user_id ON public.review_votes(user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_review_id ON public.comments(review_id);
