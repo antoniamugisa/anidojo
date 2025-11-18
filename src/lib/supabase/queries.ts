@@ -102,8 +102,33 @@ export async function getUserReview(userId: string, animeId: number) {
 }
 
 export async function upsertReview(review: Omit<Review, 'id' | 'created_at' | 'updated_at' | 'helpful_votes'> & { id?: string }) {
+  console.log('upsertReview called with:', { id: review.id, user_id: review.user_id, anime_id: review.anime_id, status: review.status });
+  
   // If we have an ID, update by ID
   if (review.id) {
+    console.log('Updating review by ID:', review.id);
+    
+    // If publishing, check if there's already a published review for this user/anime
+    if (review.status === 'published') {
+      const { data: existingPublished } = await supabase
+        .from('reviews')
+        .select('id')
+        .eq('user_id', review.user_id)
+        .eq('anime_id', review.anime_id)
+        .eq('status', 'published')
+        .neq('id', review.id)
+        .maybeSingle();
+      
+      // If there's another published review, delete it first (only one published review allowed)
+      if (existingPublished) {
+        console.log('Found existing published review, deleting it:', existingPublished.id);
+        await supabase
+          .from('reviews')
+          .delete()
+          .eq('id', existingPublished.id);
+      }
+    }
+    
     const { data, error } = await supabase
       .from('reviews')
       .update({
@@ -115,14 +140,33 @@ export async function upsertReview(review: Omit<Review, 'id' | 'created_at' | 'u
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating review by ID:', error);
+      throw error;
+    }
+    console.log('Review updated successfully:', data);
     return data as Review;
   }
 
-  // If no ID, check if a review already exists for this user/anime
-  const existing = await getUserReview(review.user_id, review.anime_id);
+  // If no ID, try to find existing review (could be draft or published)
+  console.log('No ID provided, checking for existing review...');
+  const { data: existingReviews, error: fetchError } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('user_id', review.user_id)
+    .eq('anime_id', review.anime_id)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (fetchError) {
+    console.error('Error fetching existing review:', fetchError);
+    throw fetchError;
+  }
+
+  const existing = existingReviews && existingReviews.length > 0 ? existingReviews[0] : null;
   
   if (existing) {
+    console.log('Found existing review, updating:', existing.id);
     // Update existing review
     const { data, error } = await supabase
       .from('reviews')
@@ -135,11 +179,36 @@ export async function upsertReview(review: Omit<Review, 'id' | 'created_at' | 'u
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating existing review:', error);
+      throw error;
+    }
+    console.log('Review updated successfully:', data);
     return data as Review;
   }
 
   // Create new review
+  console.log('No existing review found, creating new review...');
+  
+  // If publishing, check if there's already a published review and delete it
+  if (review.status === 'published') {
+    const { data: existingPublished } = await supabase
+      .from('reviews')
+      .select('id')
+      .eq('user_id', review.user_id)
+      .eq('anime_id', review.anime_id)
+      .eq('status', 'published')
+      .maybeSingle();
+    
+    if (existingPublished) {
+      console.log('Found existing published review, deleting it:', existingPublished.id);
+      await supabase
+        .from('reviews')
+        .delete()
+        .eq('id', existingPublished.id);
+    }
+  }
+  
   const { data, error } = await supabase
     .from('reviews')
     .insert({
@@ -151,7 +220,11 @@ export async function upsertReview(review: Omit<Review, 'id' | 'created_at' | 'u
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error creating new review:', error);
+    throw error;
+  }
+  console.log('Review created successfully:', data);
   return data as Review;
 }
 
