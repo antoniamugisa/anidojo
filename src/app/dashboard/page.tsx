@@ -332,7 +332,7 @@ export default function DashboardPage() {
             
             <div className="flex space-x-4 overflow-x-auto pb-4">
               {readyToReview.length > 0 ? readyToReview.map((item) => (
-                <div key={item.anime_id} className="flex-shrink-0 w-64 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 group">
+                <div key={item.anime_id} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 group">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800 relative">
                     {item.image ? (
                       <Image
@@ -438,9 +438,9 @@ export default function DashboardPage() {
             <p className="text-gray-400 mb-6">Based on your reviews and lists</p>
             
             {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+              <div className="flex space-x-4 overflow-x-auto pb-4">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 animate-pulse">
+                  <div key={i} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 animate-pulse">
                     <div className="aspect-[3/4] mb-3 rounded-lg bg-gray-700"></div>
                     <div className="h-4 bg-gray-700 rounded mb-2"></div>
                     <div className="h-3 bg-gray-700 rounded w-2/3"></div>
@@ -448,9 +448,9 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+            <div className="flex space-x-4 overflow-x-auto pb-4">
                 {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
-                  <div key={anime.mal_id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
+                  <div key={anime.mal_id} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
                     <Link href={`/anime/${anime.mal_id}`} className="block">
                       <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
                         <img
@@ -492,7 +492,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )) : (
-                  <div className="col-span-full text-center py-20">
+                  <div className="flex-shrink-0 w-full text-center py-20">
                     <p className="text-gray-400 text-lg">No anime data available</p>
                   </div>
                 )}
@@ -549,9 +549,9 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            <div className="flex space-x-4 overflow-x-auto pb-4">
               {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime) => (
-                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group block">
+                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group block">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
                     <img
                       src={anime.images.jpg.large_image_url}
@@ -577,7 +577,7 @@ export default function DashboardPage() {
                   </button>
                 </Link>
               )) : (
-                <div className="col-span-full text-center py-20">
+                <div className="flex-shrink-0 w-full text-center py-20">
                   <p className="text-gray-400 text-lg">No upcoming anime data available</p>
                 </div>
               )}
