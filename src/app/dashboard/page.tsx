@@ -3,12 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAuth } from '@/contexts/AuthContext';
-import { getAnimeEntries } from '@/lib/supabase/queries';
-import { getReviews } from '@/lib/supabase/queries';
-import { getAnimeById, getTopAnime, getCurrentSeasonAnime } from '@/lib/animeApi';
+import { getTopAnime, getCurrentSeasonAnime } from '@/lib/animeApi';
 import { 
   Bell, 
   ChevronDown, 
@@ -17,19 +14,12 @@ import {
   Star, 
   User, 
   LogOut,
-  Play,
-  Plus,
-  BookOpen,
-  Wand2,
   Award,
   Home,
   Search,
   List,
   Calendar,
-  Settings,
-  Zap,
-  Cloud,
-  Compass
+  Settings
 } from 'lucide-react';
 
 // Types for Jikan API responses
@@ -65,38 +55,14 @@ interface Anime {
   year?: number;
 }
 
-interface JikanResponse {
-  data: Anime[];
-  pagination: {
-    last_visible_page: number;
-    has_next_page: boolean;
-    current_page: number;
-    items: {
-      count: number;
-      total: number;
-      per_page: number;
-    };
-  };
-}
-
-
-interface ReadyToReviewItem {
-  anime_id: number;
-  title: string;
-  image: string;
-  status: string;
-  hasReview: boolean;
-}
-
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [recommendedAnime, setRecommendedAnime] = useState<Anime[]>([]);
   const [trendingAnime, setTrendingAnime] = useState<Anime[]>([]);
   const [upcomingAnime, setUpcomingAnime] = useState<Anime[]>([]);
-  const [readyToReview, setReadyToReview] = useState<ReadyToReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
 
   // Authentication check is handled by middleware
 
@@ -131,61 +97,6 @@ export default function DashboardPage() {
           setUpcomingAnime([]);
         }
 
-        // Fetch user's anime entries for "Ready to Review" section
-        if (user?.id) {
-          const userEntries = await getAnimeEntries(user.id);
-          const userReviews = await getReviews(undefined, user.id);
-          const reviewedAnimeIds = new Set(userReviews.map(r => r.anime_id));
-          
-          // Get up to 4 entries that don't have reviews yet
-          const entriesToReview = userEntries
-            .filter(entry => !reviewedAnimeIds.has(entry.anime_id))
-            .slice(0, 4);
-          
-          // Fetch anime data for each entry
-          const readyToReviewItems: ReadyToReviewItem[] = [];
-          for (const entry of entriesToReview) {
-            try {
-              const animeData = await getAnimeById(entry.anime_id);
-              if (animeData?.data) {
-                readyToReviewItems.push({
-                  anime_id: entry.anime_id,
-                  title: animeData.data.title_english || animeData.data.title,
-                  image: animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || '',
-                  status: entry.status || 'Plan to Watch',
-                  hasReview: false
-                });
-              }
-            } catch (error) {
-              console.warn(`Failed to fetch anime ${entry.anime_id}:`, error);
-            }
-          }
-          
-          // Also include some entries that have reviews (for "Already Reviewed" state)
-          const reviewedEntries = userEntries
-            .filter(entry => reviewedAnimeIds.has(entry.anime_id))
-            .slice(0, 4 - readyToReviewItems.length);
-          
-          for (const entry of reviewedEntries) {
-            try {
-              const animeData = await getAnimeById(entry.anime_id);
-              if (animeData?.data && readyToReviewItems.length < 4) {
-                readyToReviewItems.push({
-                  anime_id: entry.anime_id,
-                  title: animeData.data.title_english || animeData.data.title,
-                  image: animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || '',
-                  status: entry.status || 'Completed',
-                  hasReview: true
-                });
-              }
-            } catch (error) {
-              console.warn(`Failed to fetch anime ${entry.anime_id}:`, error);
-            }
-          }
-          
-          setReadyToReview(readyToReviewItems);
-        }
-
       } catch (error) {
         console.error('Error fetching anime data:', error);
       } finally {
@@ -194,7 +105,7 @@ export default function DashboardPage() {
     };
 
     fetchAnimeData();
-  }, [user?.id]);
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -320,105 +231,6 @@ export default function DashboardPage() {
               </Link>
             </div>
           </section>
-          {/* Start Your Next Review Section */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Ready to Review?</h2>
-              <Link href="/discover" className="text-green-400 hover:text-green-300 transition-colors flex items-center space-x-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Get Recommendations</span>
-              </Link>
-            </div>
-            
-            <div className="flex space-x-4 overflow-x-auto pb-4">
-              {readyToReview.length > 0 ? readyToReview.map((item) => (
-                <div key={item.anime_id} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 group">
-                  <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800 relative">
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Play className="w-12 h-12 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-white mb-2 line-clamp-2">{item.title}</h3>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      item.status === 'Completed' || item.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                      item.status === 'Watching' || item.status === 'watching' || item.status === 'Currently Watching' ? 'bg-blue-500/20 text-blue-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {item.status}
-                    </span>
-                    {item.hasReview && (
-                      <div className="flex items-center space-x-1 text-yellow-400">
-                        <Star className="w-3 h-3 fill-current" />
-                        <span className="text-xs">Reviewed</span>
-                      </div>
-                    )}
-                  </div>
-                  {item.hasReview ? (
-                    <button className="w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 bg-gray-600 text-gray-400 cursor-not-allowed">
-                      <BookOpen className="w-4 h-4" />
-                      <span>Already Reviewed</span>
-                    </button>
-                  ) : (
-                    <Link
-                      href={`/anime/${item.anime_id}/review`}
-                      className="w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      <span>Write Review</span>
-                    </Link>
-                  )}
-                </div>
-              )) : (
-                <div className="flex-shrink-0 w-full text-center py-8 text-gray-400">
-                  <p>Add anime to your list to see them here</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Quick Recommend Widget */}
-          <section className="bg-gradient-to-r from-red-500/10 to-green-500/10 backdrop-blur-sm border border-red-500/20 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Not sure what to watch next?</h3>
-              <Link href="/discover" className="text-green-400 hover:text-green-300 transition-colors flex items-center space-x-1">
-                <Wand2 className="w-4 h-4" />
-                <span>See All Moods</span>
-              </Link>
-            </div>
-            <p className="text-gray-300 mb-4">Get instant recommendations based on your mood</p>
-            <div className="flex flex-wrap gap-3 w-full">
-              {[
-                { mood: 'excited', name: 'Excited', icon: Zap, color: 'from-red-500 to-orange-500' },
-                { mood: 'relaxed', name: 'Relaxed', icon: Cloud, color: 'from-blue-500 to-cyan-500' },
-                { mood: 'adventurous', name: 'Adventurous', icon: Compass, color: 'from-green-500 to-emerald-500' }
-              ].map((mood) => {
-                const IconComponent = mood.icon;
-                return (
-                  <Link
-                    key={mood.mood}
-                    href={`/discover?mood=${mood.mood}`}
-                    className={`px-4 py-3 rounded-lg border border-white/20 hover:border-red-500/50 transition-all duration-300 group ${mood.color} bg-gradient-to-r`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className="w-5 h-5 text-white" />
-                      <span className="text-white font-medium">{mood.name}</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
 
           {/* Recommended For You Section */}
           <section>
@@ -438,53 +250,29 @@ export default function DashboardPage() {
             <p className="text-gray-400 mb-6">Based on your reviews and lists</p>
             
             {loading ? (
-              <div className="flex space-x-4 overflow-x-auto pb-4">
+              <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 animate-pulse">
                     <div className="aspect-[3/4] mb-3 rounded-lg bg-gray-700"></div>
-                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-700 rounded"></div>
                   </div>
                 ))}
               </div>
             ) : (
-            <div className="flex space-x-4 overflow-x-auto pb-4">
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
                 {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
-                  <div key={anime.mal_id} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group">
-                    <Link href={`/anime/${anime.mal_id}`} className="block">
-                      <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                        <img
-                          src={anime.images.jpg.large_image_url}
-                          alt={anime.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                      <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
-                        {anime.title_english || anime.title}
-                      </h3>
-                    </Link>
-                    <div className="flex space-x-2 mt-3">
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          alert('Add to List clicked');
-                        }}
-                        className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-1"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Add to List</span>
-                      </button>
-                      <Link
-                        href={`/anime/${anime.mal_id}/review`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-1"
-                      >
-                        <BookOpen className="w-3 h-3" />
-                        <span>Review</span>
-                      </Link>
+                  <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
+                    <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
+                      <img
+                        src={anime.images.jpg.large_image_url}
+                        alt={anime.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                  </div>
+                    <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
+                      {anime.title_english || anime.title}
+                    </h3>
+                  </Link>
                 )) : (
                   <div className="flex-shrink-0 w-full text-center py-20">
                     <p className="text-gray-400 text-lg">No anime data available</p>
@@ -503,7 +291,7 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <div className="flex space-x-4 overflow-x-auto pb-4">
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
               {trendingAnime && trendingAnime.length > 0 ? trendingAnime.slice(0, 10).map((anime, index) => (
                 <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
                   <div className="absolute top-2 right-2 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm z-10">
@@ -537,7 +325,7 @@ export default function DashboardPage() {
               </button>
             </div>
             
-            <div className="flex space-x-4 overflow-x-auto pb-4">
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
               {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime) => (
                 <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group block">
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
@@ -547,22 +335,9 @@ export default function DashboardPage() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-green-400 transition-colors">
+                  <h3 className="font-semibold text-white line-clamp-2 group-hover:text-green-400 transition-colors">
                     {anime.title_english || anime.title}
                   </h3>
-                  <p className="text-sm text-gray-400 mb-3">
-                    {anime.aired.from ? new Date(anime.aired.from).toLocaleDateString() : 'TBA'}
-                  </p>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      alert('Notify Me clicked');
-                    }}
-                    className="w-full py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    Notify Me
-                  </button>
                 </Link>
               )) : (
                 <div className="flex-shrink-0 w-full text-center py-20">
