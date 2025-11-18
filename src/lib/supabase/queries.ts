@@ -54,11 +54,11 @@ export async function deleteAnimeEntry(userId: string, animeId: number) {
 }
 
 // Reviews
-export async function getReviews(animeId?: number, userId?: string, status?: 'draft' | 'published') {
+export async function getReviews(animeId?: number, userId?: string, status?: 'draft' | 'published', limit?: number) {
   let query = supabase
     .from('reviews')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('updated_at', { ascending: false });
 
   if (animeId) {
     query = query.eq('anime_id', animeId);
@@ -70,6 +70,11 @@ export async function getReviews(animeId?: number, userId?: string, status?: 'dr
 
   if (status) {
     query = query.eq('status', status);
+  }
+
+  // Add limit to prevent fetching too many reviews at once
+  if (limit) {
+    query = query.limit(limit);
   }
 
   const { data, error } = await query;
