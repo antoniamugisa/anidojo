@@ -55,6 +55,9 @@ export async function deleteAnimeEntry(userId: string, animeId: number) {
 
 // Reviews
 export async function getReviews(animeId?: number, userId?: string, status?: 'draft' | 'published', limit?: number) {
+  const startTime = Date.now();
+  console.log('getReviews called', { animeId, userId, status, limit });
+  
   let query = supabase
     .from('reviews')
     .select('*')
@@ -77,9 +80,14 @@ export async function getReviews(animeId?: number, userId?: string, status?: 'dr
     query = query.limit(limit);
   }
 
+  console.log('Executing Supabase query...');
   const { data, error } = await query;
+  console.log(`Supabase query completed in ${Date.now() - startTime}ms`, { dataCount: data?.length, error });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Supabase query error:', error);
+    throw error;
+  }
   return data;
 }
 

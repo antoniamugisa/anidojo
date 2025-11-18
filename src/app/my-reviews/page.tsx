@@ -3,15 +3,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { getReviews, deleteReview } from '@/lib/supabase/queries';
+import { getAnimeById } from '@/lib/animeApi';
 import type { Review as ReviewType } from '@/types/database';
 import { 
   Star, 
   Trash2, 
   ThumbsUp, 
   Loader2,
-  Clock,
   BookOpen,
   MoreVertical,
   Share2,
@@ -27,13 +28,25 @@ interface ReviewDisplay extends ReviewType {
 export default function MyReviewsPage() {
   const [reviews, setReviews] = useState<ReviewDisplay[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedReviewId, setExpandedReviewId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user ?? null;
+  const authLoading = auth?.loading ?? true;
+  
+  // Debug auth state
+  useEffect(() => {
+    console.log('Auth state changed:', { 
+      hasAuth: !!auth, 
+      hasUser: !!user, 
+      userId: user?.id, 
+      authLoading,
+      isAuthenticated: auth?.isAuthenticated 
+    });
+  }, [auth, user, authLoading]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -54,61 +67,130 @@ export default function MyReviewsPage() {
 
   // Load reviews
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+    
     const loadReviews = async () => {
-      // Wait for auth to finish loading
-      if (authLoading) {
-        return;
-      }
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        // Limit to 100 reviews for performance
-        const dbReviews = await getReviews(undefined, user.id, undefined, 100);
+      console.log('loadReviews called', { authLoading, hasUser: !!user, userId: user?.id });
+      
+      // If we have a user, we can proceed immediately even if authLoading is true
+      // (authLoading might be stuck, but if we have user data, we can use it)
+      if (user?.id) {
+        console.log('User found, loading reviews immediately');
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         
-        // Convert DB reviews to display format
-        const reviewsWithAnimeData: ReviewDisplay[] = dbReviews.map((review: any) => ({
-          id: review.id,
-          user_id: review.user_id,
-          anime_id: review.anime_id,
-          rating: review.rating,
-          story_rating: review.story_rating,
-          animation_rating: review.animation_rating,
-          sound_rating: review.sound_rating,
-          character_rating: review.character_rating,
-          enjoyment_rating: review.enjoyment_rating,
-          title: review.title,
-          body: review.body,
-          spoilers: review.spoilers,
-          watch_status: review.watch_status,
-          episodes_watched: review.episodes_watched,
-          tags: review.tags,
-          pros: review.pros,
-          cons: review.cons,
-          recommendation: review.recommendation,
-          status: review.status,
-          helpful_votes: review.helpful_votes,
-          created_at: review.created_at,
-          updated_at: review.updated_at,
-          animeTitle: `Anime ${review.anime_id}`, // TODO: Fetch from API
-          animeImage: '/images/placeholder-anime.jpg' // TODO: Fetch from API
-        }));
+        setLoading(true);
+        const startTime = Date.now();
         
+        try {
+          // Limit to 100 reviews for performance
+          console.log('Calling getReviews...');
+          const dbReviews = await getReviews(undefined, user.id, undefined, 100);
+          console.log(`getReviews completed in ${Date.now() - startTime}ms, got ${dbReviews?.length || 0} reviews`);
+          
+          if (!isMounted) return;
+          
+          if (!dbReviews) {
+            console.warn('getReviews returned null/undefined');
+            setReviews([]);
+            return;
+          }
+          
+        // Convert DB reviews to display format and fetch anime data
+        const reviewsWithAnimeData: ReviewDisplay[] = await Promise.all(
+          dbReviews.map(async (review: any) => {
+            let animeTitle = `Anime ${review.anime_id}`;
+            let animeImage = '/images/placeholder-anime.jpg';
+            
+            // Fetch anime data from API
+            try {
+              const animeData = await getAnimeById(review.anime_id);
+              if (animeData?.data) {
+                animeTitle = animeData.data.title_english || animeData.data.title;
+                animeImage = animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || animeImage;
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch anime ${review.anime_id}:`, error);
+            }
+            
+            return {
+              id: review.id,
+              user_id: review.user_id,
+              anime_id: review.anime_id,
+              rating: review.rating,
+              story_rating: review.story_rating,
+              animation_rating: review.animation_rating,
+              sound_rating: review.sound_rating,
+              character_rating: review.character_rating,
+              enjoyment_rating: review.enjoyment_rating,
+              title: review.title,
+              body: review.body,
+              spoilers: review.spoilers,
+              watch_status: review.watch_status,
+              episodes_watched: review.episodes_watched,
+              tags: review.tags,
+              pros: review.pros,
+              cons: review.cons,
+              recommendation: review.recommendation,
+              status: review.status,
+              helpful_votes: review.helpful_votes,
+              created_at: review.created_at,
+              updated_at: review.updated_at,
+              animeTitle,
+              animeImage
+            };
+          })
+        );
+        
+        console.log(`Setting ${reviewsWithAnimeData.length} reviews, total time: ${Date.now() - startTime}ms`);
         setReviews(reviewsWithAnimeData);
       } catch (error) {
         console.error('Error loading reviews:', error);
+          if (isMounted) {
+            setReviews([]);
+          }
       } finally {
-        setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+            console.log(`loadReviews finished in ${Date.now() - startTime}ms`);
+          }
+        }
+        return;
       }
+      
+      // No user - wait for auth to finish, but with timeout
+      if (authLoading) {
+        console.log('Auth still loading, waiting...');
+        // Set a timeout - if auth is still loading after 1.5 seconds, proceed anyway
+        timeoutId = setTimeout(() => {
+          console.warn('Auth loading timeout after 1.5s, proceeding with no user');
+          if (isMounted) {
+        setLoading(false);
+            setReviews([]);
+          }
+        }, 1500);
+        return;
+      }
+
+      // Auth finished but no user
+      console.log('No user after auth finished, setting loading to false');
+      setLoading(false);
+      setReviews([]);
     };
 
     loadReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+    
+    // Cleanup timeout on unmount or dependency change
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [user?.id, authLoading]);
 
   const handleDeleteReview = async (reviewId: string) => {
     setDeleting(true);
@@ -117,9 +199,6 @@ export default function MyReviewsPage() {
       await deleteReview(reviewId);
       const updatedReviews = reviews.filter(r => r.id !== reviewId);
       setReviews(updatedReviews);
-      if (expandedReviewId === reviewId) {
-        setExpandedReviewId(null);
-      }
     } catch (error) {
       console.error('Error deleting review:', error);
       alert('Failed to delete review. Please try again.');
@@ -145,10 +224,6 @@ export default function MyReviewsPage() {
     }
   };
 
-  const toggleReview = (reviewId: string) => {
-    setExpandedReviewId(prev => prev === reviewId ? null : reviewId);
-    setMenuOpenId(null);
-  };
 
   const StarRating = ({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) => {
     const sizeClasses = {
@@ -171,42 +246,6 @@ export default function MyReviewsPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    if (status === 'published') {
-      return (
-        <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center space-x-1">
-          <span>Published</span>
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded-full flex items-center space-x-1">
-        <Clock className="w-3 h-3" />
-        <span>Draft</span>
-      </span>
-    );
-  };
-
-  const getRecommendationBadge = (recommendation?: string) => {
-    if (!recommendation) return null;
-    
-    const badges = {
-      'highly-recommend': { label: 'Highly Recommend', color: 'bg-green-500/20 text-green-400' },
-      'recommend': { label: 'Recommend', color: 'bg-green-500/20 text-green-400' },
-      'mixed': { label: 'Mixed', color: 'bg-yellow-500/20 text-yellow-400' },
-      'not-recommend': { label: 'Not Recommend', color: 'bg-orange-500/20 text-orange-400' },
-      'strongly-not-recommend': { label: 'Strongly Not Recommend', color: 'bg-red-500/20 text-red-400' }
-    };
-    
-    const badge = badges[recommendation as keyof typeof badges];
-    if (!badge) return null;
-    
-    return (
-      <span className={`px-2 py-1 ${badge.color} text-xs rounded-full`}>
-        {badge.label}
-      </span>
-    );
-  };
 
   if (loading) {
     return (
@@ -244,133 +283,142 @@ export default function MyReviewsPage() {
             <p className="text-gray-400 mb-6">Start writing your first anime review!</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {reviews.map((review) => {
-              const isExpanded = expandedReviewId === review.id;
               const isMenuOpen = menuOpenId === review.id;
 
               return (
                 <div
                   key={review.id}
-                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg hover:border-red-500/50 transition-all duration-300"
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg hover:border-red-500/50 transition-all duration-300 p-6"
                 >
-                  {/* Collapsed/Header View */}
-                  <div
-                    onClick={() => toggleReview(review.id)}
-                    className="p-4 cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white truncate">
-                            {review.title}
-                          </h3>
-                          <div className="flex items-center space-x-2 flex-shrink-0">
-                            {getStatusBadge(review.status)}
-                            {getRecommendationBadge(review.recommendation)}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-400">
-                          <span>{review.animeTitle}</span>
-                          <StarRating rating={review.rating} />
-                          <span>{new Date(review.updated_at).toLocaleDateString()}</span>
-                          {review.status === 'published' && (
-                            <div className="flex items-center space-x-1">
-                              <ThumbsUp className="w-4 h-4" />
-                              <span>{review.helpful_votes} helpful</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div className="relative">
+                    {/* 3-Dot Menu */}
+                    <div className="absolute top-0 right-0" ref={menuRef}>
+              <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpenId(isMenuOpen ? null : review.id);
+                        }}
+                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-400" />
+              </button>
 
-                  {/* Expanded View */}
-                  {isExpanded && (
-                    <div className="px-4 pb-4 border-t border-white/10 pt-4">
-                      <div className="relative">
-                        {/* 3-Dot Menu */}
-                        <div className="absolute top-0 right-0" ref={menuRef}>
+                      {/* Menu Dropdown */}
+                      {isMenuOpen && (
+                        <div className="absolute right-0 top-10 bg-gray-900 border border-white/20 rounded-lg shadow-lg z-10 min-w-[150px]">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setMenuOpenId(isMenuOpen ? null : review.id);
+                              handleEditReview(review);
                             }}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            className="w-full px-4 py-2 text-left text-white hover:bg-white/10 flex items-center space-x-2 rounded-t-lg"
                           >
-                            <MoreVertical className="w-5 h-5 text-gray-400" />
+                            <Edit3 className="w-4 h-4" />
+                            <span>Edit</span>
                           </button>
-
-                          {/* Menu Dropdown */}
-                          {isMenuOpen && (
-                            <div className="absolute right-0 top-10 bg-gray-900 border border-white/20 rounded-lg shadow-lg z-10 min-w-[150px]">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditReview(review);
-                                }}
-                                className="w-full px-4 py-2 text-left text-white hover:bg-white/10 flex items-center space-x-2 rounded-t-lg"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleShareReview(review);
-                                }}
-                                className="w-full px-4 py-2 text-left text-white hover:bg-white/10 flex items-center space-x-2"
-                              >
-                                <Share2 className="w-4 h-4" />
-                                <span>Share</span>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteReview(review.id);
-                                }}
-                                disabled={deleting}
-                                className="w-full px-4 py-2 text-left text-red-400 hover:bg-white/10 flex items-center space-x-2 rounded-b-lg disabled:opacity-50"
-                              >
-                                {deleting ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4" />
-                                )}
-                                <span>Delete</span>
-                              </button>
-                            </div>
-                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShareReview(review);
+                            }}
+                            className="w-full px-4 py-2 text-left text-white hover:bg-white/10 flex items-center space-x-2"
+                          >
+                            <Share2 className="w-4 h-4" />
+                            <span>Share</span>
+                          </button>
+                  <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteReview(review.id);
+                            }}
+                            disabled={deleting}
+                            className="w-full px-4 py-2 text-left text-red-400 hover:bg-white/10 flex items-center space-x-2 rounded-b-lg disabled:opacity-50"
+                          >
+                            {deleting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                            <span>Delete</span>
+                  </button>
                         </div>
+                      )}
+                  </div>
+
+                  {/* Review Content */}
+                    <div className="flex gap-4 pr-12">
+                      {/* Anime Image */}
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-32 rounded-lg overflow-hidden bg-gray-800">
+                          <Image
+                            src={review.animeImage || '/images/placeholder-anime.jpg'}
+                            alt={review.animeTitle || 'Anime'}
+                            width={96}
+                            height={128}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
+
+                      {/* Review Details */}
+                  <div className="flex-1 min-w-0">
+                        {/* Anime Title */}
+                        <h2 className="text-xl font-bold text-white mb-2">
+                          {review.animeTitle || `Anime ${review.anime_id}`}
+                        </h2>
+
+                        {/* Review Title */}
+                        <h3 className="text-lg font-semibold text-gray-300 mb-3">
+                          {review.title}
+                        </h3>
+
+                        {/* Rating and Date */}
+                        <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
+                      <StarRating rating={review.rating} />
+                          <span>{new Date(review.updated_at).toLocaleDateString()}</span>
+                      {review.status === 'published' && (
+                            <div className="flex items-center space-x-1">
+                          <ThumbsUp className="w-4 h-4" />
+                              <span>{review.helpful_votes} helpful</span>
+                        </div>
+                      )}
+                    </div>
 
                         {/* Review Body */}
-                        <div className="pr-12">
-                          <p className="text-gray-300 text-sm mb-4 whitespace-pre-wrap">
-                            {review.body}
-                          </p>
+                        <div className="mb-4">
+                          <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                      {review.body}
+                    </p>
+                        </div>
 
-                          {review.tags && review.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {review.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="px-2 py-1 bg-white/10 text-xs rounded text-gray-300"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                        {/* Tags */}
+                        {review.tags && review.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {review.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-2 py-1 bg-white/10 text-xs rounded text-gray-300"
+                              >
+                            {tag}
+                          </span>
+                        ))}
+                          </div>
+                        )}
 
+                        {/* Pros and Cons */}
+                        <div className="space-y-3">
                           {review.pros && (
-                            <div className="mb-3">
+                            <div>
                               <h4 className="text-sm font-semibold text-green-400 mb-1">Pros:</h4>
                               <p className="text-gray-300 text-sm">{review.pros}</p>
-                            </div>
-                          )}
+                      </div>
+                    )}
 
                           {review.cons && (
-                            <div className="mb-3">
+                            <div>
                               <h4 className="text-sm font-semibold text-red-400 mb-1">Cons:</h4>
                               <p className="text-gray-300 text-sm">{review.cons}</p>
                             </div>
@@ -378,7 +426,7 @@ export default function MyReviewsPage() {
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
