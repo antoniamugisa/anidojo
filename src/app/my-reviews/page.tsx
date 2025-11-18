@@ -99,54 +99,64 @@ export default function MyReviewsPage() {
             return;
           }
           
-        // Convert DB reviews to display format and fetch anime data
-        const reviewsWithAnimeData: ReviewDisplay[] = await Promise.all(
-          dbReviews.map(async (review: any) => {
-            let animeTitle = `Anime ${review.anime_id}`;
-            let animeImage = '/images/placeholder-anime.jpg';
-            
-            // Fetch anime data from API
-            try {
-              const animeData = await getAnimeById(review.anime_id);
-              if (animeData?.data) {
-                animeTitle = animeData.data.title_english || animeData.data.title;
-                animeImage = animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || animeImage;
-              }
-            } catch (error) {
-              console.warn(`Failed to fetch anime ${review.anime_id}:`, error);
-            }
-            
-            return {
-              id: review.id,
-              user_id: review.user_id,
-              anime_id: review.anime_id,
-              rating: review.rating,
-              story_rating: review.story_rating,
-              animation_rating: review.animation_rating,
-              sound_rating: review.sound_rating,
-              character_rating: review.character_rating,
-              enjoyment_rating: review.enjoyment_rating,
-              title: review.title,
-              body: review.body,
-              spoilers: review.spoilers,
-              watch_status: review.watch_status,
-              episodes_watched: review.episodes_watched,
-              tags: review.tags,
-              pros: review.pros,
-              cons: review.cons,
-              recommendation: review.recommendation,
-              status: review.status,
-              helpful_votes: review.helpful_votes,
-              created_at: review.created_at,
-              updated_at: review.updated_at,
-              animeTitle,
-              animeImage
-            };
-          })
-        );
+        // Convert DB reviews to display format with placeholder data first
+        const reviewsWithAnimeData: ReviewDisplay[] = dbReviews.map((review: any) => ({
+          id: review.id,
+          user_id: review.user_id,
+          anime_id: review.anime_id,
+          rating: review.rating,
+          story_rating: review.story_rating,
+          animation_rating: review.animation_rating,
+          sound_rating: review.sound_rating,
+          character_rating: review.character_rating,
+          enjoyment_rating: review.enjoyment_rating,
+          title: review.title,
+          body: review.body,
+          spoilers: review.spoilers,
+          watch_status: review.watch_status,
+          episodes_watched: review.episodes_watched,
+          tags: review.tags,
+          pros: review.pros,
+          cons: review.cons,
+          recommendation: review.recommendation,
+          status: review.status,
+          helpful_votes: review.helpful_votes,
+          created_at: review.created_at,
+          updated_at: review.updated_at,
+          animeTitle: `Anime ${review.anime_id}`,
+          animeImage: '/images/placeholder-anime.jpg'
+        }));
         
+        // Show reviews immediately with placeholder data
         console.log(`Setting ${reviewsWithAnimeData.length} reviews, total time: ${Date.now() - startTime}ms`);
         setReviews(reviewsWithAnimeData);
+        
+        // Fetch anime data sequentially to avoid rate limiting
+        // Update each review as its data loads
+        for (let i = 0; i < reviewsWithAnimeData.length; i++) {
+          const review = reviewsWithAnimeData[i];
+          if (!isMounted) break;
+          
+          try {
+            const animeData = await getAnimeById(review.anime_id);
+            if (animeData?.data && isMounted) {
+              setReviews(prevReviews => {
+                const updated = [...prevReviews];
+                if (updated[i]) {
+                  updated[i] = {
+                    ...updated[i],
+                    animeTitle: animeData.data.title_english || animeData.data.title,
+                    animeImage: animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || updated[i].animeImage
+                  };
+                }
+                return updated;
+              });
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch anime ${review.anime_id}:`, error);
+            // Keep placeholder data on error
+          }
+        }
       } catch (error) {
         console.error('Error loading reviews:', error);
           if (isMounted) {
