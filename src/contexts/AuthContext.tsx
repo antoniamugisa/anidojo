@@ -68,58 +68,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+    // Set user immediately with basic info from auth, then enhance with profile data
+    const basicUserData: User = {
+      id: supabaseUser.id,
+      username: supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'user',
+      email: supabaseUser.email || '',
+      avatar_url: null,
+      bio: null,
+    };
+    setUser(basicUserData);
+
     try {
-      // Fetch profile from database
-      const { data: profile, error } = await supabase
+      // Fetch profile from database with timeout
+      const profilePromise = supabase
         .from('profiles')
-        .select('*')
+        .select('username, avatar_url, bio')
         .eq('id', supabaseUser.id)
         .single();
 
-      // If profile doesn't exist, create it
+      const timeoutPromise = new Promise((resolve) => 
+        setTimeout(() => resolve({ data: null, error: { code: 'TIMEOUT', message: 'Profile fetch timeout' } }), 3000)
+      );
+
+      const { data: profile, error } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ]) as any;
+
+      // Handle timeout - just use basic user data, profile will load later if needed
+      if (error && error.code === 'TIMEOUT') {
+        console.warn('Profile fetch timed out, using basic user info');
+        // User already set with basic info, just return
+        return;
+      }
+
+      // If profile doesn't exist, create it (but don't wait)
       if (error && error.code === 'PGRST116') {
-        // Profile doesn't exist, create it
         const username = supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || 'user';
-        const { error: insertError } = await supabase
+        // Create profile in background, don't wait for it
+        supabase
           .from('profiles')
           .insert({
             id: supabaseUser.id,
             username: username,
+          })
+          .then(() => {
+            // Update user once profile is created
+            setUser({
+              ...basicUserData,
+              username: username,
+            });
+          })
+          .catch((insertError) => {
+            console.error('Error creating profile:', insertError);
           });
-
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-        }
-
-        // Set user even if profile creation fails
-        const userData: User = {
-          id: supabaseUser.id,
-          username: username,
-          email: supabaseUser.email || '',
-          avatar_url: null,
-          bio: null,
-        };
-        setUser(userData);
         return;
       }
 
       if (error) {
         console.error('Error loading profile:', error);
-        // Still set user with basic info even if profile load fails
-        const userData: User = {
-          id: supabaseUser.id,
-          username: supabaseUser.email?.split('@')[0] || 'user',
-          email: supabaseUser.email || '',
-          avatar_url: null,
-          bio: null,
-        };
-        setUser(userData);
+        // User already set with basic info, just return
         return;
       }
 
+      // Update user with profile data
       const userData: User = {
         id: supabaseUser.id,
-        username: profile?.username || supabaseUser.email?.split('@')[0] || 'user',
+        username: profile?.username || basicUserData.username,
         email: supabaseUser.email || '',
         avatar_url: profile?.avatar_url || null,
         bio: profile?.bio || null,
@@ -129,41 +144,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData);
     } catch (error) {
       console.error('Error loading user profile:', error);
-      // Set user with basic info even on error
-      const userData: User = {
-        id: supabaseUser.id,
-        username: supabaseUser.email?.split('@')[0] || 'user',
-        email: supabaseUser.email || '',
-        avatar_url: null,
-        bio: null,
-      };
-      console.log('AuthContext: Setting user with basic info', userData);
-      setUser(userData);
+      // User already set with basic info, no need to set again
     }
   };
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true);
+      const startTime = Date.now();
+      console.log('SignIn: Starting authentication...');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log(`SignIn: Auth completed in ${Date.now() - startTime}ms`, { hasUser: !!data?.user, error });
+
       if (error) {
+        setLoading(false);
         return { success: false, error: error.message };
       }
 
       if (data.user) {
-        await loadUserProfile(data.user);
+        // Set user immediately with basic info, then load profile in background
+        const basicUserData: User = {
+          id: data.user.id,
+          username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'user',
+          email: data.user.email || '',
+          avatar_url: null,
+          bio: null,
+        };
+        setUser(basicUserData);
+        setLoading(false); // Set loading to false immediately after auth succeeds
+        
+        // Load profile in background - don't block sign-in
+        loadUserProfile(data.user).catch(err => {
+          console.error('Error loading profile after sign-in:', err);
+        });
+        
+        console.log(`SignIn: Completed in ${Date.now() - startTime}ms`);
+        return { success: true };
       }
 
+      setLoading(false);
       return { success: true };
     } catch (error) {
       console.error('Sign in error:', error);
-      return { success: false, error: 'An unexpected error occurred' };
-    } finally {
       setLoading(false);
+      return { success: false, error: 'An unexpected error occurred' };
     }
   };
 
