@@ -459,15 +459,9 @@ export default function DashboardPage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
-                      <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-red-400 transition-colors">
+                      <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
                         {anime.title_english || anime.title}
                       </h3>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">{anime.genres[0]?.name || 'Anime'}</span>
-                        {anime.score && (
-                          <span className="text-green-400 font-semibold">★ {anime.score}</span>
-                        )}
-                      </div>
                     </Link>
                     <div className="flex space-x-2 mt-3">
                       <button 
@@ -512,7 +506,7 @@ export default function DashboardPage() {
             <div className="flex space-x-4 overflow-x-auto pb-4">
               {trendingAnime && trendingAnime.length > 0 ? trendingAnime.slice(0, 10).map((anime, index) => (
                 <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute top-2 right-2 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm z-10">
                     {index + 1}
                   </div>
                   <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
@@ -522,15 +516,9 @@ export default function DashboardPage() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-red-400 transition-colors">
+                  <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
                     {anime.title_english || anime.title}
                   </h3>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400">{anime.genres[0]?.name || 'Anime'}</span>
-                    {anime.score && (
-                      <span className="text-green-400 font-semibold">★ {anime.score}</span>
-                    )}
-                  </div>
                 </Link>
               )) : (
                 <div className="flex-shrink-0 w-full text-center py-20">
