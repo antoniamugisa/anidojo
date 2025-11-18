@@ -123,7 +123,9 @@ export default function MyListsPage() {
   const [customLists, setCustomLists] = useState<CustomList[]>([]);
   
   const router = useRouter();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user ?? null;
+  const authLoading = auth?.loading ?? true;
 
   // Helper function to convert DB entry to component entry
   const dbToComponentEntry = (dbEntry: DBAnimeEntry): AnimeEntry => ({
@@ -178,20 +180,42 @@ export default function MyListsPage() {
 
   // Load anime entries and calculate stats
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+    
     const loadData = async () => {
-      if (!user) {
+      // Wait for auth to finish loading, but with timeout
+      if (authLoading) {
+        timeoutId = setTimeout(() => {
+          if (authLoading && isMounted) {
+            console.warn('Auth loading timeout, proceeding anyway');
+            setLoading(false);
+          }
+        }, 1500);
+        return;
+      }
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (!user?.id) {
         setLoading(false);
         return;
       }
 
       try {
+        setLoading(true);
         const dbEntries = await getAnimeEntries(user.id);
-        const entries = dbEntries.map(dbToComponentEntry);
+        if (!isMounted) return;
         
+        const entries = dbEntries.map(dbToComponentEntry);
         setAnimeEntries(entries);
         
         // Load custom lists
         const dbLists = await getCustomLists(user.id);
+        if (!isMounted) return;
+        
         // Convert DB lists to component format
         const lists = dbLists.map(list => ({
           id: list.id,
@@ -209,13 +233,22 @@ export default function MyListsPage() {
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadData();
+    
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id, authLoading]);
 
   // Filter and sort entries
   useEffect(() => {

@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAnimeEntries } from '@/lib/supabase/queries';
+import { getReviews } from '@/lib/supabase/queries';
+import { getAnimeById, getTopAnime, getCurrentSeasonAnime } from '@/lib/animeApi';
 import { 
   Bell, 
   ChevronDown, 
@@ -76,14 +80,23 @@ interface JikanResponse {
 }
 
 
+interface ReadyToReviewItem {
+  anime_id: number;
+  title: string;
+  image: string;
+  status: string;
+  hasReview: boolean;
+}
+
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [recommendedAnime, setRecommendedAnime] = useState<Anime[]>([]);
   const [trendingAnime, setTrendingAnime] = useState<Anime[]>([]);
   const [upcomingAnime, setUpcomingAnime] = useState<Anime[]>([]);
+  const [readyToReview, setReadyToReview] = useState<ReadyToReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   // Authentication check is handled by middleware
 
@@ -93,20 +106,85 @@ export default function DashboardPage() {
       try {
         setLoading(true);
 
-        // Fetch recommended anime (top rated)
-        const recommendedResponse = await fetch('https://api.jikan.moe/v4/top/anime?limit=8');
-        const recommendedData: JikanResponse = await recommendedResponse.json();
-        setRecommendedAnime(recommendedData.data);
+        // Fetch recommended anime (top rated) - using rate limiter
+        try {
+          const recommendedData = await getTopAnime(1, 8);
+          setRecommendedAnime(recommendedData.data);
+        } catch (error) {
+          console.error('Error fetching recommended anime:', error);
+        }
 
-        // Fetch trending anime (most popular)
-        const trendingResponse = await fetch('https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=10');
-        const trendingData: JikanResponse = await trendingResponse.json();
-        setTrendingAnime(trendingData.data);
+        // Fetch trending anime (most popular) - using rate limiter
+        try {
+          const trendingData = await getTopAnime(1, 10, 'bypopularity');
+          setTrendingAnime(trendingData.data);
+        } catch (error) {
+          console.error('Error fetching trending anime:', error);
+        }
 
-        // Fetch upcoming anime (currently airing)
-        const upcomingResponse = await fetch('https://api.jikan.moe/v4/seasons/now?limit=8');
-        const upcomingData: JikanResponse = await upcomingResponse.json();
-        setUpcomingAnime(upcomingData.data);
+        // Fetch upcoming anime (currently airing) - using rate limiter
+        try {
+          const upcomingData = await getCurrentSeasonAnime(8);
+          setUpcomingAnime(upcomingData.data);
+        } catch (error) {
+          console.error('Error fetching upcoming anime:', error);
+          setUpcomingAnime([]);
+        }
+
+        // Fetch user's anime entries for "Ready to Review" section
+        if (user?.id) {
+          const userEntries = await getAnimeEntries(user.id);
+          const userReviews = await getReviews(undefined, user.id);
+          const reviewedAnimeIds = new Set(userReviews.map(r => r.anime_id));
+          
+          // Get up to 4 entries that don't have reviews yet
+          const entriesToReview = userEntries
+            .filter(entry => !reviewedAnimeIds.has(entry.anime_id))
+            .slice(0, 4);
+          
+          // Fetch anime data for each entry
+          const readyToReviewItems: ReadyToReviewItem[] = [];
+          for (const entry of entriesToReview) {
+            try {
+              const animeData = await getAnimeById(entry.anime_id);
+              if (animeData?.data) {
+                readyToReviewItems.push({
+                  anime_id: entry.anime_id,
+                  title: animeData.data.title_english || animeData.data.title,
+                  image: animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || '',
+                  status: entry.status || 'Plan to Watch',
+                  hasReview: false
+                });
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch anime ${entry.anime_id}:`, error);
+            }
+          }
+          
+          // Also include some entries that have reviews (for "Already Reviewed" state)
+          const reviewedEntries = userEntries
+            .filter(entry => reviewedAnimeIds.has(entry.anime_id))
+            .slice(0, 4 - readyToReviewItems.length);
+          
+          for (const entry of reviewedEntries) {
+            try {
+              const animeData = await getAnimeById(entry.anime_id);
+              if (animeData?.data && readyToReviewItems.length < 4) {
+                readyToReviewItems.push({
+                  anime_id: entry.anime_id,
+                  title: animeData.data.title_english || animeData.data.title,
+                  image: animeData.data.images?.jpg?.large_image_url || animeData.data.images?.jpg?.image_url || '',
+                  status: entry.status || 'Completed',
+                  hasReview: true
+                });
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch anime ${entry.anime_id}:`, error);
+            }
+          }
+          
+          setReadyToReview(readyToReviewItems);
+        }
 
       } catch (error) {
         console.error('Error fetching anime data:', error);
@@ -116,7 +194,7 @@ export default function DashboardPage() {
     };
 
     fetchAnimeData();
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -253,23 +331,28 @@ export default function DashboardPage() {
             </div>
             
             <div className="flex space-x-4 overflow-x-auto pb-4">
-              {[
-                { id: 1, title: 'Attack on Titan', status: 'Completed', hasReview: false },
-                { id: 2, title: 'Demon Slayer', status: 'Watching', hasReview: false },
-                { id: 3, title: 'Your Name', status: 'Completed', hasReview: true },
-                { id: 4, title: 'Spirited Away', status: 'Plan to Watch', hasReview: false }
-              ].map((item) => (
-                <div key={item.id} className="flex-shrink-0 w-64 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 group">
-                  <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800">
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Play className="w-12 h-12 text-gray-400" />
-                    </div>
+              {readyToReview.length > 0 ? readyToReview.map((item) => (
+                <div key={item.anime_id} className="flex-shrink-0 w-64 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 group">
+                  <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden bg-gray-800 relative">
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Play className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                   <h3 className="font-semibold text-white mb-2 line-clamp-2">{item.title}</h3>
                   <div className="flex items-center justify-between mb-3">
                     <span className={`px-2 py-1 rounded text-xs ${
-                      item.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                      item.status === 'Watching' ? 'bg-blue-500/20 text-blue-400' :
+                      item.status === 'Completed' || item.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                      item.status === 'Watching' || item.status === 'watching' || item.status === 'Currently Watching' ? 'bg-blue-500/20 text-blue-400' :
                       'bg-gray-500/20 text-gray-400'
                     }`}>
                       {item.status}
@@ -288,7 +371,7 @@ export default function DashboardPage() {
                     </button>
                   ) : (
                     <Link
-                      href={`/anime/${item.id}/review`}
+                      href={`/anime/${item.anime_id}/review`}
                       className="w-full py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white"
                     >
                       <BookOpen className="w-4 h-4" />
@@ -296,7 +379,11 @@ export default function DashboardPage() {
                     </Link>
                   )}
                 </div>
-              ))}
+              )) : (
+                <div className="flex-shrink-0 w-full text-center py-8 text-gray-400">
+                  <p>Add anime to your list to see them here</p>
+                </div>
+              )}
             </div>
           </section>
 
