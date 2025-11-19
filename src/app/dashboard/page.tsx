@@ -14,7 +14,6 @@ import {
   Star, 
   User, 
   LogOut,
-  Award,
   Home,
   Search,
   List,
@@ -75,7 +74,7 @@ export default function DashboardPage() {
         // Fetch recommended anime (top rated) - using rate limiter
         try {
           const recommendedData = await getTopAnime(1, 8);
-          setRecommendedAnime(recommendedData.data);
+        setRecommendedAnime(recommendedData.data);
         } catch (error) {
           console.error('Error fetching recommended anime:', error);
         }
@@ -83,7 +82,7 @@ export default function DashboardPage() {
         // Fetch trending anime (most popular) - using rate limiter
         try {
           const trendingData = await getTopAnime(1, 10, 'bypopularity');
-          setTrendingAnime(trendingData.data);
+        setTrendingAnime(trendingData.data);
         } catch (error) {
           console.error('Error fetching trending anime:', error);
         }
@@ -91,7 +90,7 @@ export default function DashboardPage() {
         // Fetch upcoming anime (currently airing) - using rate limiter
         try {
           const upcomingData = await getCurrentSeasonAnime(8);
-          setUpcomingAnime(upcomingData.data);
+        setUpcomingAnime(upcomingData.data);
         } catch (error) {
           console.error('Error fetching upcoming anime:', error);
           setUpcomingAnime([]);
@@ -203,28 +202,25 @@ export default function DashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-16 w-full overflow-x-hidden">
-        <div className="px-4 sm:px-6 py-6 space-y-8 w-full">
+      <main className="md:ml-64 pt-16 overflow-x-hidden md:max-w-[calc(100vw-16rem)]">
+        <div className="px-4 sm:px-6 py-6 space-y-8">
           {/* Call-to-Action Card for New Users */}
-          <section className="bg-gradient-to-r from-red-500/20 to-green-500/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-8 text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <Award className="w-8 h-8 text-yellow-400" />
-              <h2 className="text-2xl font-bold text-white">Start Your Anime Journey!</h2>
-            </div>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              Begin reviewing anime and get personalized AI recommendations based on your preferences and mood.
+          <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-3">Start Your Anime Journey</h2>
+            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+              Begin reviewing anime and discover new favorites based on your preferences.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link 
                 href="/discover"
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Sparkles className="w-5 h-5" />
-                <span>Try AI Recommender</span>
+                <span>Discover Anime</span>
               </Link>
               <Link 
                 href="/profile"
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <User className="w-5 h-5" />
                 <span>Set Up Profile</span>
@@ -262,17 +258,17 @@ export default function DashboardPage() {
             <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
                 {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
                   <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
-                    <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                      <img
-                        src={anime.images.jpg.large_image_url}
-                        alt={anime.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
+                      <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
+                        <img
+                          src={anime.images.jpg.large_image_url}
+                          alt={anime.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
                     <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
-                      {anime.title_english || anime.title}
-                    </h3>
-                  </Link>
+                        {anime.title_english || anime.title}
+                      </h3>
+                      </Link>
                 )) : (
                   <div className="flex-shrink-0 w-full text-center py-20">
                     <p className="text-gray-400 text-lg">No anime data available</p>
