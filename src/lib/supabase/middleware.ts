@@ -27,24 +27,49 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
+  // IMPORTANT: getUser() automatically refreshes the session if needed
+  // This ensures cookies are properly synced after sign-in
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/signin') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname.startsWith('/dashboard')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Define protected routes that require authentication
+  const protectedRoutes = [
+    '/dashboard',
+    '/profile',
+    '/settings',
+    '/my-lists',
+    '/my-reviews',
+    '/browse',
+    '/discover',
+    '/upcoming',
+  ]
+
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/signin',
+    '/signup',
+    '/auth',
+    '/',
+    '/anime',  // Anime detail pages are public
+    '/search', // Search is public
+  ]
+
+  const pathname = request.nextUrl.pathname
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
+  
+  // Allow public routes and API routes
+  if (isPublicRoute || pathname.startsWith('/api/') || pathname.startsWith('/_next/')) {
+    return supabaseResponse
+  }
+
+  // For protected routes, check if user is authenticated
+  if (isProtectedRoute && !user) {
+    // Redirect to sign-in page, preserving the intended destination
     const url = request.nextUrl.clone()
     url.pathname = '/signin'
+    url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 

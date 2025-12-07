@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { getTopAnime, getCurrentSeasonAnime } from '@/lib/animeApi';
@@ -18,10 +19,10 @@ import {
   Search,
   List,
   Calendar,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 
-// Types for Jikan API responses
 interface Anime {
   mal_id: number;
   title: string;
@@ -63,34 +64,28 @@ export default function DashboardPage() {
   const router = useRouter();
   const { signOut } = useAuth();
 
-  // Authentication check is handled by middleware
-
-  // Fetch anime data
   useEffect(() => {
     const fetchAnimeData = async () => {
       try {
         setLoading(true);
 
-        // Fetch recommended anime (top rated) - using rate limiter
         try {
           const recommendedData = await getTopAnime(1, 8);
-        setRecommendedAnime(recommendedData.data);
+          setRecommendedAnime(recommendedData.data);
         } catch (error) {
           console.error('Error fetching recommended anime:', error);
         }
 
-        // Fetch trending anime (most popular) - using rate limiter
         try {
           const trendingData = await getTopAnime(1, 10, 'bypopularity');
-        setTrendingAnime(trendingData.data);
+          setTrendingAnime(trendingData.data);
         } catch (error) {
           console.error('Error fetching trending anime:', error);
         }
 
-        // Fetch upcoming anime (currently airing) - using rate limiter
         try {
           const upcomingData = await getCurrentSeasonAnime(8);
-        setUpcomingAnime(upcomingData.data);
+          setUpcomingAnime(upcomingData.data);
         } catch (error) {
           console.error('Error fetching upcoming anime:', error);
           setUpcomingAnime([]);
@@ -123,69 +118,68 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white w-full overflow-x-hidden">
+    <div className="min-h-screen bg-ink text-cream w-full overflow-x-hidden">
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
-        <div className="flex items-center justify-between px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-ink/95 backdrop-blur-sm border-b border-border-subtle">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <img src="/images/anidojo-logo.png" alt="AniDojo" className="h-8 w-auto" />
-            <span className="text-xl font-bold text-white">AniDojo</span>
+          <Link href="/dashboard" className="flex items-center space-x-3">
+            <Image src="/images/anidojo-logo.png" alt="AniDojo" width={32} height={32} className="h-8 w-auto" />
+            <span className="font-display text-xl tracking-wider text-cream">ANIDOJO</span>
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-8">
+          <div className="hidden md:block flex-1 max-w-md mx-8">
             <GlobalSearch />
           </div>
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <Bell className="w-6 h-6" />
+            <button className="p-2 text-cream-muted hover:text-cream transition-colors">
+              <Bell className="w-5 h-5" />
             </button>
 
-            {/* Profile Dropdown */}
-            <div className="relative">
-              <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-colors">
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">U</span>
-                </div>
-                <span className="text-sm">User</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+            <div className="hidden md:flex items-center space-x-2 p-2 rounded-sm hover:bg-surface transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-crimson rounded-full flex items-center justify-center">
+                <span className="font-display text-sm">U</span>
+              </div>
+              <span className="text-sm text-cream">User</span>
+              <ChevronDown className="w-4 h-4 text-cream-muted" />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+            className="md:hidden p-2 text-cream-muted hover:text-cream transition-colors"
           >
-            <Menu className="w-6 h-6" />
+            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </nav>
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-black/95 backdrop-blur-sm border-r border-white/10 transform transition-transform duration-300 z-40 ${
+      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-ink-light border-r border-border-subtle transform transition-transform duration-300 z-40 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0`}>
-        <nav className="p-6 space-y-2">
+        {/* Halftone Pattern */}
+        <div className="absolute inset-0 bg-halftone bg-halftone opacity-[0.02] pointer-events-none" />
+        
+        <nav className="relative p-4 space-y-1">
           {sidebarItems.map((item) => {
             const IconComponent = item.icon;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center space-x-3 px-4 py-3 rounded-sm transition-all duration-200 ${
                   item.active
-                    ? 'bg-red-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-crimson text-cream'
+                    : 'text-cream-muted hover:text-cream hover:bg-surface'
                 }`}
               >
                 <IconComponent className="w-5 h-5" />
-                <span className="font-medium">{item.name}</span>
+                <span className="font-medium text-sm">{item.name}</span>
               </Link>
             );
           })}
@@ -193,163 +187,164 @@ export default function DashboardPage() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-cream-muted hover:text-crimson-bright hover:bg-crimson/10 transition-colors mt-4"
           >
             <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium text-sm">Logout</span>
           </button>
         </nav>
       </aside>
 
       {/* Main Content */}
-      <main className="md:ml-64 pt-16 overflow-x-hidden md:max-w-[calc(100vw-16rem)]">
-        <div className="px-4 sm:px-6 py-6 space-y-8">
-          {/* Call-to-Action Card for New Users */}
-          <section className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">Start Your Anime Journey</h2>
-            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+      <main className="md:ml-64 pt-16 overflow-x-hidden">
+        <div className="px-4 sm:px-6 py-6 space-y-10">
+          {/* CTA Section */}
+          <section className="card-feature rounded-md p-8 text-center">
+            <h2 className="font-display text-display-sm text-cream mb-3">START YOUR ANIME JOURNEY</h2>
+            <p className="text-cream-muted mb-8 max-w-2xl mx-auto">
               Begin reviewing anime and discover new favorites based on your preferences.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link 
                 href="/discover"
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="btn-primary flex items-center space-x-2"
               >
                 <Sparkles className="w-5 h-5" />
-                <span>Discover Anime</span>
+                <span>DISCOVER ANIME</span>
               </Link>
               <Link 
                 href="/profile"
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="btn-secondary flex items-center space-x-2"
               >
                 <User className="w-5 h-5" />
-                <span>Set Up Profile</span>
+                <span>SET UP PROFILE</span>
               </Link>
             </div>
           </section>
 
-          {/* Recommended For You Section */}
+          {/* Recommended Section */}
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <h2 className="text-2xl font-bold text-white">Recommended For You</h2>
-                <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center space-x-1">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Powered by AI</span>
-                </span>
-              </div>
-              <Link href="/discover" className="text-green-400 hover:text-green-300 transition-colors flex items-center space-x-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Get More Recommendations</span>
-              </Link>
+            <div className="section-header">
+              <h2 className="font-display text-display-sm">RECOMMENDED FOR YOU</h2>
+              <span className="tag tag-jade flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                AI POWERED
+              </span>
             </div>
-            <p className="text-gray-400 mb-6">Based on your reviews and lists</p>
+            <p className="text-cream-muted mb-6">Based on your reviews and lists</p>
             
             {loading ? (
               <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 animate-pulse">
-                    <div className="aspect-[3/4] mb-3 rounded-lg bg-gray-700"></div>
-                    <div className="h-4 bg-gray-700 rounded"></div>
+                  <div key={i} className="flex-shrink-0 w-48 card p-4">
+                    <div className="aspect-[3/4] mb-3 rounded-sm skeleton"></div>
+                    <div className="h-4 skeleton rounded"></div>
                   </div>
                 ))}
               </div>
             ) : (
-            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-                {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime) => (
-                  <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
-                      <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                        <img
-                          src={anime.images.jpg.large_image_url}
-                          alt={anime.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                    <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
-                        {anime.title_english || anime.title}
-                      </h3>
-                      </Link>
+              <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+                {recommendedAnime && recommendedAnime.length > 0 ? recommendedAnime.map((anime, index) => (
+                  <Link 
+                    key={anime.mal_id} 
+                    href={`/anime/${anime.mal_id}`} 
+                    className={`flex-shrink-0 w-48 manga-panel rounded-sm p-4 cursor-pointer group block animate-slide-up stagger-${Math.min(index + 1, 6)}`}
+                  >
+                    <div className="aspect-[3/4] mb-3 rounded-sm overflow-hidden relative">
+                      <Image
+                        src={anime.images.jpg.large_image_url}
+                        alt={anime.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <h3 className="font-medium text-cream line-clamp-2 group-hover:text-crimson-bright transition-colors">
+                      {anime.title_english || anime.title}
+                    </h3>
+                  </Link>
                 )) : (
-                  <div className="flex-shrink-0 w-full text-center py-20">
-                    <p className="text-gray-400 text-lg">No anime data available</p>
+                  <div className="w-full text-center py-20">
+                    <p className="text-cream-muted">No anime data available</p>
                   </div>
                 )}
               </div>
             )}
           </section>
 
-          {/* Trending This Week Section */}
+          {/* Trending Section */}
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Trending This Week</h2>
-              <button className="text-green-400 hover:text-green-300 transition-colors">
-                View All
-              </button>
+            <div className="section-header">
+              <h2 className="font-display text-display-sm">TRENDING THIS WEEK</h2>
             </div>
             
             <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
               {trendingAnime && trendingAnime.length > 0 ? trendingAnime.slice(0, 10).map((anime, index) => (
-                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-red-500/50 transition-all duration-300 cursor-pointer group relative block">
-                  <div className="absolute top-2 right-2 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm z-10">
+                <Link 
+                  key={anime.mal_id} 
+                  href={`/anime/${anime.mal_id}`} 
+                  className={`flex-shrink-0 w-48 manga-panel rounded-sm p-4 cursor-pointer group relative block animate-slide-up stagger-${Math.min(index + 1, 6)}`}
+                >
+                  {/* Rank Badge */}
+                  <div className="absolute top-2 left-2 z-10 rank-badge text-base">
                     {index + 1}
                   </div>
-                  <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                    <img
+                  <div className="aspect-[3/4] mb-3 rounded-sm overflow-hidden relative">
+                    <Image
                       src={anime.images.jpg.large_image_url}
                       alt={anime.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <h3 className="font-semibold text-white line-clamp-2 group-hover:text-red-400 transition-colors">
+                  <h3 className="font-medium text-cream line-clamp-2 group-hover:text-crimson-bright transition-colors">
                     {anime.title_english || anime.title}
                   </h3>
                 </Link>
               )) : (
-                <div className="flex-shrink-0 w-full text-center py-20">
-                  <p className="text-gray-400 text-lg">No trending anime data available</p>
+                <div className="w-full text-center py-20">
+                  <p className="text-cream-muted">No trending anime data available</p>
                 </div>
               )}
             </div>
           </section>
 
-          {/* Upcoming Releases Section */}
+          {/* Upcoming Section */}
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Upcoming Releases</h2>
-              <button className="text-green-400 hover:text-green-300 transition-colors">
-                View All
-              </button>
+            <div className="section-header">
+              <h2 className="font-display text-display-sm">CURRENT SEASON</h2>
             </div>
             
             <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime) => (
-                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`} className="flex-shrink-0 w-48 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-green-500/50 transition-all duration-300 cursor-pointer group block">
-                  <div className="aspect-[3/4] mb-3 rounded-lg overflow-hidden">
-                    <img
+              {upcomingAnime && upcomingAnime.length > 0 ? upcomingAnime.slice(0, 8).map((anime, index) => (
+                <Link 
+                  key={anime.mal_id} 
+                  href={`/anime/${anime.mal_id}`} 
+                  className={`flex-shrink-0 w-48 card rounded-sm p-4 cursor-pointer group block animate-slide-up stagger-${Math.min(index + 1, 6)}`}
+                >
+                  <div className="aspect-[3/4] mb-3 rounded-sm overflow-hidden relative">
+                    <Image
                       src={anime.images.jpg.large_image_url}
                       alt={anime.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <h3 className="font-semibold text-white line-clamp-2 group-hover:text-green-400 transition-colors">
+                  <h3 className="font-medium text-cream line-clamp-2 group-hover:text-jade-bright transition-colors">
                     {anime.title_english || anime.title}
                   </h3>
                 </Link>
               )) : (
-                <div className="flex-shrink-0 w-full text-center py-20">
-                  <p className="text-gray-400 text-lg">No upcoming anime data available</p>
+                <div className="w-full text-center py-20">
+                  <p className="text-cream-muted">No upcoming anime data available</p>
                 </div>
               )}
             </div>
           </section>
 
-          {/* Recent Reviews Section */}
+          {/* Community Reviews Section */}
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Recent Reviews from Community</h2>
-              <button className="text-green-400 hover:text-green-300 transition-colors">
-                View All
-              </button>
+            <div className="section-header">
+              <h2 className="font-display text-display-sm">COMMUNITY REVIEWS</h2>
             </div>
             
             <div className="space-y-4">
@@ -385,40 +380,36 @@ export default function DashboardPage() {
                   time: '1 day ago'
                 }
               ].map((review, index) => (
-                <div key={index} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-green-500/50 transition-all duration-300">
+                <div key={index} className={`card-feature rounded-md p-6 animate-slide-up stagger-${index + 1}`}>
                   <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-400 font-bold text-lg">{review.avatar}</span>
+                    <div className="w-12 h-12 bg-jade/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-jade-bright font-display text-lg">{review.avatar}</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="font-semibold text-white">{review.user}</h4>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-green-400 font-medium">{review.anime}</span>
-                        <span className="text-gray-400 text-sm">•</span>
-                        <span className="text-gray-400 text-sm">{review.time}</span>
+                        <h4 className="font-display text-cream">{review.user}</h4>
+                        <span className="text-cream-dark">•</span>
+                        <span className="text-jade-bright font-medium">{review.anime}</span>
+                        <span className="text-cream-dark text-sm">•</span>
+                        <span className="text-cream-dark text-sm">{review.time}</span>
                       </div>
                       <div className="flex items-center space-x-1 mb-3">
                         {[...Array(5)].map((_, i) => (
-                          <svg
+                          <Star
                             key={i}
-                            className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
+                            className={`w-4 h-4 ${i < review.rating ? 'text-gold-bright fill-current' : 'text-cream-dark'}`}
+                          />
                         ))}
                       </div>
-                      <p className="text-gray-300 mb-4 leading-relaxed">{review.review}</p>
+                      <p className="text-cream-muted mb-4 leading-relaxed">{review.review}</p>
                       <div className="flex items-center space-x-6">
-                        <button className="flex items-center space-x-2 text-gray-400 hover:text-green-400 transition-colors">
+                        <button className="flex items-center space-x-2 text-cream-dark hover:text-jade-bright transition-colors">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                           </svg>
                           <span className="text-sm">{review.likes}</span>
                         </button>
-                        <button className="flex items-center space-x-2 text-gray-400 hover:text-green-400 transition-colors">
+                        <button className="flex items-center space-x-2 text-cream-dark hover:text-jade-bright transition-colors">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                           </svg>
@@ -437,7 +428,7 @@ export default function DashboardPage() {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-ink/50 z-30 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

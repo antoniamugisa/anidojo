@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -217,16 +216,6 @@ export default function AnimeDetailPage({ params }: { params: Promise<{ id: stri
   const [streamingServices] = useState<Array<{name: string, url: string, available: boolean}>>([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [userListStatus, setUserListStatus] = useState<string>('');
-  const router = useRouter();
-
-  // Mock authentication check
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
-      router.push('/signin');
-    }
-  }, [router]);
-
   // Fetch anime details
   useEffect(() => {
     const fetchAnimeDetails = async () => {

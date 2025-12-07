@@ -113,14 +113,6 @@ export default function DiscoverPage() {
   const [availableGenres, setAvailableGenres] = useState<Array<{ mal_id: number; name: string }>>([]);
   const router = useRouter();
 
-  // Mock authentication check
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
-      router.push('/signin');
-    }
-  }, [router]);
-
   // Load recommendation history and genres
   useEffect(() => {
     const loadData = async () => {

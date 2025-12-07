@@ -132,14 +132,6 @@ export default function ProfilePage() {
   });
   const router = useRouter();
 
-  // Mock authentication check
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (!isAuthenticated) {
-      router.push('/signin');
-    }
-  }, [router]);
-
   // Mock data loading
   useEffect(() => {
     const loadProfileData = async () => {
